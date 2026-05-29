@@ -17,12 +17,14 @@ import { MomCheckModal } from './screens/MomCheckModal';
 import { OnboardingScreen } from './screens/OnboardingScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { colors, fonts } from './theme';
+import { replaceTimeGreeting, t } from './i18n';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabKey>('home');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [momCheckOpen, setMomCheckOpen] = useState(false);
   const momData = useMomData();
+  const language = momData.data?.preferences.language ?? 'en';
 
   const momCheckResult = useMemo(
     () => (momData.momCheckInput ? MomCheckService.run(momData.momCheckInput) : null),
@@ -35,12 +37,11 @@ export default function App() {
   const timeAwareDailySummary = useMemo(() => {
     if (!dailySummary) return null;
     const hour = new Date().getHours();
-    const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
     return {
       ...dailySummary,
-      topMessage: dailySummary.topMessage.replace(/^Good morning/, greeting),
+      topMessage: replaceTimeGreeting(language, dailySummary.topMessage, hour),
     };
-  }, [dailySummary]);
+  }, [dailySummary, language]);
   const preparationTasks = useMemo(
     () => (momData.momCheckInput ? PreparationService.generate(momData.momCheckInput).slice(0, 4) : []),
     [momData.momCheckInput],
@@ -55,7 +56,7 @@ export default function App() {
       <SafeAreaView style={styles.loadingShell}>
         <StatusBar style="dark" />
         <Text style={styles.loadingLogo}>MOM</Text>
-        <Text style={styles.loadingText}>Putting the notes on the fridge...</Text>
+        <Text style={styles.loadingText}>{t(language, 'app.loading')}</Text>
       </SafeAreaView>
     );
   }
@@ -65,6 +66,7 @@ export default function App() {
       <>
         <StatusBar style="dark" />
         <OnboardingScreen
+          language={language}
           onComplete={(selectedPersonality, selectedInterests) => {
             void momData.updatePreferences({
               hasCompletedOnboarding: true,
@@ -97,6 +99,7 @@ export default function App() {
               onSearchCities={(query) => void momData.searchCities(query)}
               onSelectWeatherCity={(city) => void momData.selectWeatherCity(city)}
               onRefreshWeather={() => void momData.refreshWeather(true)}
+              language={language}
             />
           ) : (
             <>
@@ -105,6 +108,7 @@ export default function App() {
                   birthdays={momData.data.birthdays}
                   calendarEvents={momData.data.calendarEvents}
                   dailySummary={timeAwareDailySummary}
+                  language={language}
                   littleReminders={momData.data.littleReminders}
                   personality={momData.data.preferences.personality}
                   preparationTasks={preparationTasks}
@@ -120,6 +124,7 @@ export default function App() {
               {activeTab === 'calendar' ? (
                 <CalendarScreen
                   events={momData.data.calendarEvents}
+                  language={language}
                   personality={momData.data.preferences.personality}
                   onSaveEvent={(event) => void momData.saveCalendarEvent(event)}
                   onDeleteEvent={(id) => void momData.deleteCalendarEvent(id)}
@@ -127,6 +132,7 @@ export default function App() {
               ) : null}
               {activeTab === 'lists' ? (
                 <ListsScreen
+                  language={language}
                   reminders={momData.data.reminders}
                   personality={momData.data.preferences.personality}
                   shoppingLists={momData.data.shoppingLists}
@@ -148,6 +154,7 @@ export default function App() {
                 <FamilyScreen
                   birthdays={momData.data.birthdays}
                   familyMembers={momData.data.familyMembers}
+                  language={language}
                   personality={momData.data.preferences.personality}
                   onSaveBirthday={(birthday) => void momData.saveBirthday(birthday)}
                   onDeleteBirthday={(id) => void momData.deleteBirthday(id)}
@@ -158,14 +165,14 @@ export default function App() {
             </>
           )}
           <View style={styles.feedbackWrap}>
-            <FeedbackBanner message={momData.saving ? 'Saving...' : momData.feedback} onDismiss={momData.clearFeedback} />
+            <FeedbackBanner message={momData.saving ? t(language, 'common.saving') : momData.feedback} onDismiss={momData.clearFeedback} />
           </View>
         </View>
         {!settingsOpen ? (
-          <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} onMomCheckPress={() => setMomCheckOpen(true)} />
+          <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} onMomCheckPress={() => setMomCheckOpen(true)} language={language} />
         ) : null}
       </View>
-      {momCheckResult ? <MomCheckModal visible={momCheckOpen} result={momCheckResult} onClose={() => setMomCheckOpen(false)} /> : null}
+      {momCheckResult ? <MomCheckModal visible={momCheckOpen} result={momCheckResult} onClose={() => setMomCheckOpen(false)} language={language} /> : null}
     </SafeAreaView>
   );
 }

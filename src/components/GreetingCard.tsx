@@ -3,9 +3,18 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { colors, fonts, spacing } from '../theme';
+import { t } from '../i18n';
+import type { AppLanguage } from '../types';
 import { PaperCard } from './PaperCard';
 
-export function GreetingCard() {
+type Props = {
+  language: AppLanguage;
+};
+
+export function GreetingCard({ language }: Props) {
+  const hour = new Date().getHours();
+  const greetingKey = hour < 12 ? 'greeting.morning' : hour < 18 ? 'greeting.afternoon' : 'greeting.evening';
+
   return (
     <PaperCard pinned tapeColor={colors.beige} style={styles.card}>
       <View style={styles.row}>
@@ -13,9 +22,9 @@ export function GreetingCard() {
           <Ionicons name="person" size={54} color={colors.coral} />
         </View>
         <View style={styles.copy}>
-          <Text style={styles.kicker}>Good morning,</Text>
-          <Text style={styles.name}>Sweetheart!</Text>
-          <Text style={styles.body}>I hope you have a wonderful day. I'm cheering you on.</Text>
+          <Text style={styles.kicker}>{t(language, greetingKey)},</Text>
+          <Text style={styles.name}>{t(language, 'greeting.name')}</Text>
+          <Text style={styles.body}>{t(language, 'greeting.body')}</Text>
         </View>
       </View>
     </PaperCard>

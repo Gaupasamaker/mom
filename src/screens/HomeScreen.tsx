@@ -12,7 +12,9 @@ import { ReminderCard } from '../components/ReminderCard';
 import { ScheduleCard } from '../components/ScheduleCard';
 import { WeatherCard } from '../components/WeatherCard';
 import { colors, fonts, spacing } from '../theme';
+import { t } from '../i18n';
 import type {
+  AppLanguage,
   Birthday,
   CalendarEvent,
   DailySummary,
@@ -38,6 +40,7 @@ type Props = {
   onRefreshWeather: () => void;
   onSettingsPress: () => void;
   onToggleShoppingItem: (listId: string, itemId: string) => void;
+  language: AppLanguage;
 };
 
 const daysBetween = (from: string, to: string) =>
@@ -57,6 +60,7 @@ export function HomeScreen({
   onRefreshWeather,
   onSettingsPress,
   onToggleShoppingItem,
+  language,
 }: Props) {
   const today = new Date().toISOString().slice(0, 10);
   const todayEvents = calendarEvents
@@ -87,12 +91,12 @@ export function HomeScreen({
           </Pressable>
         </View>
 
-        <GreetingCard />
-        <WeatherCard forecast={weatherForecast} cityLabel="Choose a city in Settings" onRefresh={onRefreshWeather} />
+        <GreetingCard language={language} />
+        <WeatherCard forecast={weatherForecast} cityLabel={t(language, 'home.chooseCity')} onRefresh={onRefreshWeather} language={language} />
 
         {preparationTasks.length > 0 ? (
           <View style={styles.prepBlock}>
-            <Text style={styles.sectionLabel}>Little prep, big difference</Text>
+            <Text style={styles.sectionLabel}>{t(language, 'home.prepTitle')}</Text>
             <View style={styles.prepCard}>
               {currentRoutine ? <Text style={styles.prepIntro}>{currentRoutine.message}</Text> : null}
               {preparationTasks.map((task) => (
@@ -108,7 +112,7 @@ export function HomeScreen({
           </View>
         ) : currentRoutine ? (
           <View style={styles.prepBlock}>
-            <Text style={styles.sectionLabel}>Little prep, big difference</Text>
+            <Text style={styles.sectionLabel}>{t(language, 'home.prepTitle')}</Text>
             <View style={styles.prepCard}>
               <Text style={styles.prepIntro}>{currentRoutine.message}</Text>
             </View>
@@ -117,13 +121,13 @@ export function HomeScreen({
 
         {dailySummary ? (
           <View style={styles.summaryWrap}>
-            <Text style={styles.sectionLabel}>Today from MOM</Text>
+            <Text style={styles.sectionLabel}>{t(language, 'home.summaryTitle')}</Text>
             <View style={styles.summaryCard}>
               <Text style={styles.summaryText}>{dailySummary.topMessage}</Text>
               <View style={styles.summaryStats}>
-                <Text style={styles.stat}>{dailySummary.eventCountToday} events</Text>
-                <Text style={styles.stat}>{dailySummary.dueReminderCount + dailySummary.overdueReminderCount} reminders</Text>
-                <Text style={styles.stat}>{dailySummary.upcomingBirthdayCount} birthdays soon</Text>
+                <Text style={styles.stat}>{t(language, 'home.events', { count: dailySummary.eventCountToday })}</Text>
+                <Text style={styles.stat}>{t(language, 'home.reminders', { count: dailySummary.dueReminderCount + dailySummary.overdueReminderCount })}</Text>
+                <Text style={styles.stat}>{t(language, 'home.birthdaysSoon', { count: dailySummary.upcomingBirthdayCount })}</Text>
               </View>
             </View>
           </View>
@@ -131,7 +135,7 @@ export function HomeScreen({
 
         {urgentHighlights.length > 0 ? (
           <View style={styles.priorityBlock}>
-            <Text style={styles.sectionLabel}>Needs a look</Text>
+            <Text style={styles.sectionLabel}>{t(language, 'home.needsLook')}</Text>
             {urgentHighlights.map((highlight) => (
               <View key={`${highlight.type}-${highlight.sourceId ?? highlight.title}`} style={styles.highlightRow}>
                 <Text style={styles.highlightTitle}>{highlight.title}</Text>
@@ -142,35 +146,35 @@ export function HomeScreen({
         ) : null}
 
         {todayEvents.length > 0 ? (
-          <ScheduleCard events={todayEvents} maxItems={3} />
+          <ScheduleCard events={todayEvents} maxItems={3} language={language} />
         ) : (
-          <EmptyState kind="home-events" tone={personality} />
+          <EmptyState kind="home-events" tone={personality} language={language} />
         )}
-        <MomCTAButton onPress={onMomCheckPress} />
+        <MomCTAButton onPress={onMomCheckPress} label={t(language, 'cta.momCheck')} />
 
-        <Text style={styles.sectionLabel}>Pinned for later</Text>
+        <Text style={styles.sectionLabel}>{t(language, 'home.pinnedLater')}</Text>
         {nextBirthday ? (
-          <BirthdayCard birthday={nextBirthday.birthday} daysUntil={nextBirthday.daysUntil} />
+          <BirthdayCard birthday={nextBirthday.birthday} daysUntil={nextBirthday.daysUntil} language={language} />
         ) : (
-          <EmptyState kind="birthdays" tone={personality} />
+          <EmptyState kind="birthdays" tone={personality} language={language} />
         )}
         <View style={styles.spacer} />
         {shoppingList && essentialShopping.length > 0 ? (
           <ChecklistCard
-            title="Shopping essentials"
+            title={t(language, 'home.shoppingEssentials')}
             items={essentialShopping}
             onToggleItem={(itemId) => onToggleShoppingItem(shoppingList.id, itemId)}
           />
         ) : shoppingList ? (
           <ChecklistCard title={shoppingList.title} items={shoppingList.items.slice(0, 5)} onToggleItem={(itemId) => onToggleShoppingItem(shoppingList.id, itemId)} />
         ) : (
-          <EmptyState kind="shopping" tone={personality} />
+          <EmptyState kind="shopping" tone={personality} language={language} />
         )}
         <View style={styles.spacer} />
         {littleReminders.length > 0 ? (
-          <ReminderCard reminders={littleReminders} />
+          <ReminderCard reminders={littleReminders} language={language} />
         ) : (
-          <EmptyState kind="little-reminders" tone={personality} />
+          <EmptyState kind="little-reminders" tone={personality} language={language} />
         )}
       </ScrollView>
     </View>

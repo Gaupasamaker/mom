@@ -6,17 +6,18 @@ import { EmptyState } from '../components/EmptyState';
 import { EntityFormModal } from '../components/EntityFormModal';
 import { PaperCard } from '../components/PaperCard';
 import { PaperTexture } from '../components/PaperTexture';
+import { localeFor, option, categoryLabel, t } from '../i18n';
 import { colors, fonts, spacing } from '../theme';
-import type { CalendarEvent, CalendarEventCategory, MomPersonality } from '../types';
+import type { AppLanguage, CalendarEvent, CalendarEventCategory, MomPersonality } from '../types';
 import { confirmDestructive } from '../utils/confirm';
 
-const formatTime = (date: string) => {
+const formatTime = (date: string, language: AppLanguage) => {
   const parsed = new Date(date);
   if (Number.isNaN(parsed.getTime())) {
     return '--:--';
   }
 
-  return new Intl.DateTimeFormat('en', { hour: 'numeric', minute: '2-digit' }).format(parsed);
+  return new Intl.DateTimeFormat(localeFor(language), { hour: 'numeric', minute: '2-digit' }).format(parsed);
 };
 
 const normalizeDateTime = (value: string) => {
@@ -29,6 +30,7 @@ const isValidDateTime = (value: string) => !Number.isNaN(new Date(normalizeDateT
 
 type Props = {
   events: CalendarEvent[];
+  language: AppLanguage;
   personality: MomPersonality;
   onSaveEvent: (event: Omit<CalendarEvent, 'id'> & { id?: string }) => void;
   onDeleteEvent: (id: string) => void;
@@ -36,7 +38,7 @@ type Props = {
 
 const categories: CalendarEventCategory[] = ['personal', 'work', 'health', 'medical', 'family', 'school', 'other'];
 
-export function CalendarScreen({ events, personality, onSaveEvent, onDeleteEvent }: Props) {
+export function CalendarScreen({ events, language, personality, onSaveEvent, onDeleteEvent }: Props) {
   const [editing, setEditing] = useState<CalendarEvent | null>(null);
   const [formOpen, setFormOpen] = useState(false);
 
@@ -51,28 +53,28 @@ export function CalendarScreen({ events, personality, onSaveEvent, onDeleteEvent
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.headingRow}>
           <View>
-            <Text style={styles.title}>Family Calendar</Text>
-            <Text style={styles.subtitle}>Pinned plans, not panic.</Text>
+            <Text style={styles.title}>{t(language, 'calendar.title')}</Text>
+            <Text style={styles.subtitle}>{t(language, 'calendar.subtitle')}</Text>
           </View>
-          <Pressable accessibilityRole="button" accessibilityLabel="Add event" onPress={openCreate} style={styles.addButton}>
+          <Pressable accessibilityRole="button" accessibilityLabel={t(language, 'calendar.addEvent')} onPress={openCreate} style={styles.addButton}>
             <Feather name="plus" size={22} color={colors.white} />
           </Pressable>
         </View>
 
         {events.length === 0 ? (
-          <EmptyState kind="calendar" tone={personality} />
+          <EmptyState kind="calendar" tone={personality} language={language} />
         ) : null}
 
         {events.map((event) => (
           <PaperCard key={event.id} backgroundColor={event.category === 'medical' ? '#FCE3D8' : colors.paper} style={styles.event}>
             <View style={styles.eventRow}>
               <View style={styles.timeBlock}>
-                <Text style={styles.time}>{formatTime(event.startsAt)}</Text>
+                <Text style={styles.time}>{formatTime(event.startsAt, language)}</Text>
                 <Text style={styles.date}>{event.startsAt.slice(5, 10)}</Text>
               </View>
               <View style={styles.eventCopy}>
                 <Text style={styles.eventTitle}>{event.title}</Text>
-                <Text style={styles.category}>{event.category}</Text>
+                <Text style={styles.category}>{categoryLabel(language, event.category)}</Text>
                 {event.preparationNote ? <Text style={styles.note}>{event.preparationNote}</Text> : null}
               </View>
               <View style={styles.actions}>
@@ -90,7 +92,7 @@ export function CalendarScreen({ events, personality, onSaveEvent, onDeleteEvent
                   accessibilityRole="button"
                   accessibilityLabel={`Delete ${event.title}`}
                   onPress={() =>
-                    confirmDestructive('Delete event?', `Remove "${event.title}" from the calendar?`, () => onDeleteEvent(event.id))
+                    confirmDestructive(t(language, 'calendar.deleteTitle'), t(language, 'calendar.deleteBody', { title: event.title }), () => onDeleteEvent(event.id))
                   }
                 >
                   <Feather name="trash-2" size={19} color={colors.coral} />
@@ -102,20 +104,21 @@ export function CalendarScreen({ events, personality, onSaveEvent, onDeleteEvent
       </ScrollView>
       <EntityFormModal
         visible={formOpen}
-        title={editing ? 'Edit Event' : 'Add Event'}
+        title={editing ? t(language, 'calendar.editEvent') : t(language, 'calendar.addEventTitle')}
+        language={language}
         fields={[
-          { key: 'title', label: 'Title', required: true, placeholder: 'Doctor appointment' },
+          { key: 'title', label: t(language, 'calendar.titleField'), required: true, placeholder: t(language, 'calendar.titlePlaceholder') },
           {
             key: 'startsAt',
-            label: 'Starts at',
+            label: t(language, 'calendar.startsAt'),
             required: true,
             type: 'datetime-local',
-            placeholder: 'Choose date and time',
-            validate: (value) => (isValidDateTime(value) ? null : 'Choose a valid date and time.'),
+            placeholder: t(language, 'calendar.chooseDateTime'),
+            validate: (value) => (isValidDateTime(value) ? null : t(language, 'calendar.invalidDateTime')),
           },
-          { key: 'category', label: 'Category', type: 'select', options: categories },
-          { key: 'isImportant', label: 'Important?', type: 'boolean' },
-          { key: 'preparationNote', label: 'Prep note', multiline: true, placeholder: 'Bring your health card.' },
+          { key: 'category', label: t(language, 'calendar.category'), type: 'select', options: categories.map((value) => option(language, value)) },
+          { key: 'isImportant', label: t(language, 'calendar.important'), type: 'boolean' },
+          { key: 'preparationNote', label: t(language, 'calendar.prepNote'), multiline: true, placeholder: t(language, 'calendar.prepPlaceholder') },
         ]}
         initialValues={
           editing

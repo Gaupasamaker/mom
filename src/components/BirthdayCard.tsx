@@ -3,30 +3,36 @@ import { StyleSheet, Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { colors, fonts, spacing } from '../theme';
-import type { Birthday } from '../types';
+import { localeFor, t } from '../i18n';
+import type { AppLanguage, Birthday } from '../types';
 import { PaperCard } from './PaperCard';
 
 type Props = {
   birthday: Birthday;
   daysUntil: number;
+  language: AppLanguage;
 };
 
-export function BirthdayCard({ birthday, daysUntil }: Props) {
+export function BirthdayCard({ birthday, daysUntil, language }: Props) {
+  const date = new Intl.DateTimeFormat(localeFor(language), { day: 'numeric', month: 'short', weekday: 'short' }).format(
+    new Date(`${birthday.date}T00:00:00`),
+  );
+
   return (
     <PaperCard pinned backgroundColor="#FFF1CD" style={styles.card}>
-      <Text style={styles.overline}>Upcoming</Text>
-      <Text style={styles.heading}>Birthday!</Text>
+      <Text style={styles.overline}>{t(language, 'birthdays.upcoming')}</Text>
+      <Text style={styles.heading}>{t(language, 'birthdays.heading')}</Text>
       <View style={styles.row}>
         <View style={styles.avatar}>
           <MaterialCommunityIcons name="cake-variant-outline" size={44} color={colors.coral} />
         </View>
         <View style={styles.copy}>
-          <Text style={styles.name}>{birthday.name} turns 8!</Text>
-          <Text style={styles.date}>May 16 (Sat)</Text>
+          <Text style={styles.name}>{t(language, 'birthdays.turns', { name: birthday.name })}</Text>
+          <Text style={styles.date}>{date}</Text>
         </View>
       </View>
-      <Text style={styles.days}>{daysUntil} days to go!</Text>
-      <Text style={styles.note}>Don't forget his favorite cake.</Text>
+      <Text style={styles.days}>{daysUntil === 1 ? t(language, 'birthdays.oneDay') : t(language, 'birthdays.days', { count: daysUntil })}</Text>
+      <Text style={styles.note}>{t(language, 'birthdays.note')}</Text>
     </PaperCard>
   );
 }

@@ -3,18 +3,20 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
 import { colors, fonts, spacing } from '../theme';
-import type { Reminder } from '../types';
+import { t } from '../i18n';
+import type { AppLanguage, Reminder } from '../types';
 import { PaperCard } from './PaperCard';
 import { TapeLabel } from './TapeLabel';
 
 type Props = {
   reminders: Array<Pick<Reminder, 'id' | 'title'>>;
+  language: AppLanguage;
 };
 
-export function ReminderCard({ reminders }: Props) {
+export function ReminderCard({ reminders, language }: Props) {
   return (
     <View style={styles.wrap}>
-      <TapeLabel label="Little Reminders" color={colors.sage} />
+      <TapeLabel label={t(language, 'reminderCard.title')} color={colors.sage} />
       <PaperCard backgroundColor="#E8F1E6" style={styles.card}>
         {reminders.map((reminder, index) => (
           <View key={reminder.id} style={styles.row}>
@@ -23,7 +25,7 @@ export function ReminderCard({ reminders }: Props) {
             <Feather name={index === 0 ? 'sun' : index === 1 ? 'heart' : 'book-open'} size={18} color={colors.sageDark} />
           </View>
         ))}
-        <Text style={styles.footer}>You're doing great.</Text>
+        <Text style={styles.footer}>{t(language, 'reminderCard.footer')}</Text>
       </PaperCard>
     </View>
   );

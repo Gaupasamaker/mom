@@ -3,56 +3,60 @@ import { StyleSheet, Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { colors, fonts, spacing } from '../theme';
-import type { WeatherForecast } from '../types';
+import { t } from '../i18n';
+import { WeatherCodeService } from '../services/WeatherCodeService';
+import type { AppLanguage, WeatherForecast } from '../types';
 import { PaperCard } from './PaperCard';
 
 type Props = {
   forecast?: WeatherForecast | null;
   cityLabel?: string;
   onRefresh?: () => void;
+  language: AppLanguage;
 };
 
-const recommendationFor = (forecast?: WeatherForecast | null) => {
+const recommendationFor = (language: AppLanguage, forecast?: WeatherForecast | null) => {
   if (!forecast || forecast.unavailable) {
     return {
-      title: 'Weather unavailable',
-      message: "I can't check the sky right now. Try again in a bit.",
+      title: t(language, 'weather.unavailable.title'),
+      message: t(language, 'weather.unavailable.message'),
       icon: 'weather-cloudy-alert',
     };
   }
   if (forecast.rainExpectedLaterToday) {
     return {
-      title: 'Rain later today',
-      message: 'Take your umbrella before leaving.',
+      title: t(language, 'weather.rain.title'),
+      message: t(language, 'weather.rain.message'),
       icon: 'umbrella',
     };
   }
   if (forecast.hotDayExpected) {
     return {
-      title: 'Warm day ahead',
-      message: "Take water if you're going out.",
+      title: t(language, 'weather.hot.title'),
+      message: t(language, 'weather.hot.message'),
       icon: 'water-outline',
     };
   }
   if (forecast.coldDayExpected) {
     return {
-      title: 'Chilly start',
-      message: 'Take a jacket, just in case.',
+      title: t(language, 'weather.cold.title'),
+      message: t(language, 'weather.cold.message'),
       icon: 'coat-rack',
     };
   }
 
   return {
     title: forecast.currentConditionLabel,
-    message: 'The sky looks manageable for now.',
+    message: t(language, 'weather.manageable'),
     icon: forecast.currentConditionIcon ?? 'weather-partly-cloudy',
   };
 };
 
-export function WeatherCard({ forecast, cityLabel, onRefresh }: Props) {
-  const recommendation = recommendationFor(forecast);
+export function WeatherCard({ forecast, cityLabel, onRefresh, language }: Props) {
+  const recommendation = recommendationFor(language, forecast);
   const temperature = typeof forecast?.currentTemperature === 'number' ? `${Math.round(forecast.currentTemperature)} C` : undefined;
   const place = forecast ? [forecast.cityName, forecast.admin1, forecast.country].filter(Boolean).join(', ') : cityLabel;
+  const conditionLabel = forecast ? WeatherCodeService.fromCode(forecast.currentConditionCode, language).label : undefined;
 
   return (
     <PaperCard backgroundColor="#DDEDEA" tapeColor={colors.beige} style={styles.card}>
@@ -68,10 +72,10 @@ export function WeatherCard({ forecast, cityLabel, onRefresh }: Props) {
           <Text style={styles.script}>{recommendation.message}</Text>
           {temperature ? (
             <Text style={styles.meta}>
-              {temperature} - {forecast?.currentConditionLabel}
+              {temperature} - {conditionLabel ?? forecast?.currentConditionLabel}
             </Text>
           ) : null}
-          {forecast?.stale ? <Text style={styles.meta}>Using saved weather for now.</Text> : null}
+          {forecast?.stale ? <Text style={styles.meta}>{t(language, 'weather.saved')}</Text> : null}
         </View>
         <MaterialCommunityIcons name={recommendation.icon as never} size={48} color={colors.blueDeep} onPress={onRefresh} />
       </View>

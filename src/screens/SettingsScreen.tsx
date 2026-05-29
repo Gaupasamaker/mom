@@ -4,8 +4,10 @@ import { Feather } from '@expo/vector-icons';
 
 import { PaperCard } from '../components/PaperCard';
 import { PaperTexture } from '../components/PaperTexture';
+import { localeFor, personalityOptions, t } from '../i18n';
+import { WeatherCodeService } from '../services/WeatherCodeService';
 import { colors, fonts, spacing } from '../theme';
-import type { MomPersonality, UserPreferences, WeatherCity, WeatherForecast } from '../types';
+import type { AppLanguage, UserPreferences, WeatherCity, WeatherForecast } from '../types';
 import { confirmDestructive } from '../utils/confirm';
 
 type Props = {
@@ -23,14 +25,8 @@ type Props = {
   onSelectWeatherCity: (city: WeatherCity) => void;
   onRefreshWeather: () => void;
   onBack: () => void;
+  language: AppLanguage;
 };
-
-const modes: Array<{ value: MomPersonality; label: string; sample: string }> = [
-  { value: 'sweet', label: 'Sweet Mom', sample: 'Take your umbrella, sweetheart.' },
-  { value: 'funny', label: 'Funny Mom', sample: 'Umbrella today. Drama avoided.' },
-  { value: 'strict', label: 'Strict Mom', sample: 'Bring the umbrella. No debate.' },
-  { value: 'minimal', label: 'Minimal Mom', sample: 'Umbrella today.' },
-];
 
 export function SettingsScreen({
   preferences,
@@ -47,6 +43,7 @@ export function SettingsScreen({
   onSelectWeatherCity,
   onRefreshWeather,
   onBack,
+  language,
 }: Props) {
   const [debugJson, setDebugJson] = useState('');
   const [cityQuery, setCityQuery] = useState('');
@@ -54,6 +51,10 @@ export function SettingsScreen({
   const selectedCityLabel = selectedCity
     ? [selectedCity.name, selectedCity.admin1, selectedCity.country].filter(Boolean).join(', ')
     : null;
+  const modes = personalityOptions(language);
+  const weatherLabel = weatherForecast
+    ? WeatherCodeService.fromCode(weatherForecast.currentConditionCode, language).label
+    : undefined;
 
   return (
     <View style={styles.screen}>
@@ -61,14 +62,32 @@ export function SettingsScreen({
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Pressable accessibilityRole="button" onPress={onBack} style={styles.backButton}>
           <Feather name="arrow-left" size={20} color={colors.coralDark} />
-          <Text style={styles.backText}>Back to board</Text>
+          <Text style={styles.backText}>{t(language, 'common.backToBoard')}</Text>
         </Pressable>
 
-        <Text style={styles.title}>Settings</Text>
-        <Text style={styles.subtitle}>MOM keeps these notes on this device.</Text>
+        <Text style={styles.title}>{t(language, 'settings.title')}</Text>
+        <Text style={styles.subtitle}>{t(language, 'settings.subtitle')}</Text>
 
         <PaperCard tapeColor={colors.beige} style={styles.card}>
-          <Text style={styles.cardTitle}>Personality Mode</Text>
+          <Text style={styles.cardTitle}>{t(language, 'settings.languageTitle')}</Text>
+          <Text style={styles.body}>{t(language, 'language.device')}</Text>
+          <View style={styles.segment}>
+            {(['en', 'es'] as const).map((value) => (
+              <Pressable
+                key={value}
+                onPress={() => onPreferencesChange({ language: value })}
+                style={[styles.segmentOption, preferences.language === value && styles.segmentActive]}
+              >
+                <Text style={[styles.segmentText, preferences.language === value && styles.segmentTextActive]}>
+                  {value === 'es' ? t(language, 'language.spanish') : t(language, 'language.english')}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </PaperCard>
+
+        <PaperCard tapeColor={colors.beige} style={styles.card}>
+          <Text style={styles.cardTitle}>{t(language, 'settings.personalityTitle')}</Text>
           {modes.map((mode) => {
             const active = preferences.personality === mode.value;
             return (
@@ -90,18 +109,18 @@ export function SettingsScreen({
         </PaperCard>
 
         <PaperCard backgroundColor="#E5EFE4" style={styles.card}>
-          <Text style={styles.cardTitle}>Notifications</Text>
+          <Text style={styles.cardTitle}>{t(language, 'settings.notificationsTitle')}</Text>
           <SettingToggle
-            label="Enable notifications"
+            label={t(language, 'settings.enableNotifications')}
             active={preferences.notificationsEnabled}
             onPress={() => onPreferencesChange({ notificationsEnabled: !preferences.notificationsEnabled })}
           />
           <SettingToggle
-            label="Evening reminder"
+            label={t(language, 'settings.eveningReminder')}
             active={preferences.eveningReminderEnabled}
             onPress={() => onPreferencesChange({ eveningReminderEnabled: !preferences.eveningReminderEnabled })}
           />
-          <Text style={styles.label}>Daily summary time</Text>
+          <Text style={styles.label}>{t(language, 'settings.dailySummaryTime')}</Text>
           <TextInput
             value={preferences.dailySummaryTime}
             onChangeText={(dailySummaryTime) => onPreferencesChange({ dailySummaryTime })}
@@ -111,13 +130,13 @@ export function SettingsScreen({
         </PaperCard>
 
         <PaperCard backgroundColor="#FFF1CD" style={styles.card}>
-          <Text style={styles.cardTitle}>Routines</Text>
+          <Text style={styles.cardTitle}>{t(language, 'settings.routinesTitle')}</Text>
           <SettingToggle
-            label="Morning routine"
+            label={t(language, 'settings.morningRoutine')}
             active={preferences.morningRoutineEnabled}
             onPress={() => onPreferencesChange({ morningRoutineEnabled: !preferences.morningRoutineEnabled })}
           />
-          <Text style={styles.label}>Morning time</Text>
+          <Text style={styles.label}>{t(language, 'settings.morningTime')}</Text>
           <TextInput
             value={preferences.morningRoutineTime}
             onChangeText={(morningRoutineTime) => onPreferencesChange({ morningRoutineTime })}
@@ -125,11 +144,11 @@ export function SettingsScreen({
             style={styles.input}
           />
           <SettingToggle
-            label="Evening routine"
+            label={t(language, 'settings.eveningRoutine')}
             active={preferences.eveningRoutineEnabled}
             onPress={() => onPreferencesChange({ eveningRoutineEnabled: !preferences.eveningRoutineEnabled })}
           />
-          <Text style={styles.label}>Evening time</Text>
+          <Text style={styles.label}>{t(language, 'settings.eveningTime')}</Text>
           <TextInput
             value={preferences.eveningRoutineTime}
             onChangeText={(eveningRoutineTime) => onPreferencesChange({ eveningRoutineTime })}
@@ -137,47 +156,49 @@ export function SettingsScreen({
             style={styles.input}
           />
           <SettingToggle
-            label="Include weather"
+            label={t(language, 'settings.includeWeather')}
             active={preferences.includeWeatherInRoutines}
             onPress={() => onPreferencesChange({ includeWeatherInRoutines: !preferences.includeWeatherInRoutines })}
           />
           <SettingToggle
-            label="Include birthdays"
+            label={t(language, 'settings.includeBirthdays')}
             active={preferences.includeBirthdaysInRoutines}
             onPress={() => onPreferencesChange({ includeBirthdaysInRoutines: !preferences.includeBirthdaysInRoutines })}
           />
           <SettingToggle
-            label="Include shopping"
+            label={t(language, 'settings.includeShopping')}
             active={preferences.includeShoppingInRoutines}
             onPress={() => onPreferencesChange({ includeShoppingInRoutines: !preferences.includeShoppingInRoutines })}
           />
           <SettingToggle
-            label="Include calendar prep"
+            label={t(language, 'settings.includeCalendarPrep')}
             active={preferences.includeCalendarPrepInRoutines}
             onPress={() => onPreferencesChange({ includeCalendarPrepInRoutines: !preferences.includeCalendarPrepInRoutines })}
           />
         </PaperCard>
 
         <PaperCard backgroundColor={colors.paper} style={styles.card}>
-          <Text style={styles.cardTitle}>Weather City</Text>
+          <Text style={styles.cardTitle}>{t(language, 'settings.weatherCityTitle')}</Text>
           {selectedCityLabel ? (
             <View style={styles.citySummary}>
               <Text style={styles.cityName}>{selectedCityLabel}</Text>
               <Text style={styles.body}>
-                {weatherForecast?.currentConditionLabel ?? 'Weather not checked yet'}
+                {weatherLabel ?? weatherForecast?.currentConditionLabel ?? t(language, 'settings.weatherNotChecked')}
                 {typeof weatherForecast?.currentTemperature === 'number' ? ` - ${Math.round(weatherForecast.currentTemperature)} C` : ''}
               </Text>
               <Text style={styles.metaText}>
-                Last update: {weatherForecast?.updatedAt ? new Date(weatherForecast.updatedAt).toLocaleString() : 'Not yet'}
+                {t(language, 'settings.lastUpdate', {
+                  value: weatherForecast?.updatedAt ? new Date(weatherForecast.updatedAt).toLocaleString(localeFor(language)) : t(language, 'settings.notYet'),
+                })}
               </Text>
             </View>
           ) : (
-            <Text style={styles.body}>No city selected yet. Add one and I'll keep an eye on the sky for you.</Text>
+            <Text style={styles.body}>{t(language, 'settings.noCity')}</Text>
           )}
           <View style={styles.utilityGrid}>
-            <UtilityButton label={weatherLoading ? 'Checking...' : 'Refresh weather'} onPress={onRefreshWeather} />
+            <UtilityButton label={weatherLoading ? t(language, 'settings.checking') : t(language, 'settings.refreshWeather')} onPress={onRefreshWeather} />
           </View>
-          <Text style={styles.label}>Search city</Text>
+          <Text style={styles.label}>{t(language, 'settings.searchCity')}</Text>
           <TextInput
             value={cityQuery}
             onChangeText={setCityQuery}
@@ -185,7 +206,7 @@ export function SettingsScreen({
             style={styles.input}
           />
           <View style={styles.utilityGrid}>
-            <UtilityButton label={weatherLoading ? 'Searching...' : 'Search'} onPress={() => onSearchCities(cityQuery)} />
+            <UtilityButton label={weatherLoading ? t(language, 'settings.searching') : t(language, 'settings.search')} onPress={() => onSearchCities(cityQuery)} />
           </View>
           {weatherSearchMessage ? <Text style={styles.metaText}>{weatherSearchMessage}</Text> : null}
           {weatherSearchResults.map((city) => (
@@ -202,7 +223,7 @@ export function SettingsScreen({
             </Pressable>
           ))}
 
-          <Text style={styles.label}>Time format</Text>
+          <Text style={styles.label}>{t(language, 'settings.timeFormat')}</Text>
           <View style={styles.segment}>
             {(['12h', '24h'] as const).map((format) => (
               <Pressable
@@ -217,34 +238,31 @@ export function SettingsScreen({
         </PaperCard>
 
         <PaperCard backgroundColor="#FFF1CD" style={styles.card}>
-          <Text style={styles.cardTitle}>Developer Utilities</Text>
-          <Text style={styles.body}>Testing-only tools for local data. Import replaces the current board on this device.</Text>
+          <Text style={styles.cardTitle}>{t(language, 'settings.devTitle')}</Text>
+          <Text style={styles.body}>{t(language, 'settings.devBody')}</Text>
           <View style={styles.utilityGrid}>
-            <UtilityButton label="Export JSON" onPress={() => setDebugJson(onExportData())} />
-            <UtilityButton label="Import JSON" onPress={() => onImportData(debugJson)} />
-            <UtilityButton label="Restore demo" onPress={onRestoreDemoData} />
+            <UtilityButton label={t(language, 'settings.exportJson')} onPress={() => setDebugJson(onExportData())} />
+            <UtilityButton label={t(language, 'settings.importJson')} onPress={() => onImportData(debugJson)} />
+            <UtilityButton label={t(language, 'settings.restoreDemo')} onPress={onRestoreDemoData} />
             <UtilityButton
-              label="Reset all"
+              label={t(language, 'settings.resetAll')}
               danger
-              onPress={() => confirmDestructive('Reset local data?', 'This clears reminders, events, lists, birthdays, and family notes.', onResetData)}
+              onPress={() => confirmDestructive(t(language, 'settings.resetTitle'), t(language, 'settings.resetBody'), onResetData)}
             />
           </View>
-          <Text style={styles.label}>Local JSON</Text>
+          <Text style={styles.label}>{t(language, 'settings.localJson')}</Text>
           <TextInput
             value={debugJson}
             onChangeText={setDebugJson}
             multiline
-            placeholder="Export data here, or paste JSON to import."
+            placeholder={t(language, 'settings.jsonPlaceholder')}
             style={[styles.input, styles.jsonInput]}
           />
         </PaperCard>
 
         <PaperCard backgroundColor="#E5EFE4" style={styles.card}>
-          <Text style={styles.cardTitle}>Phase 2 Ready</Text>
-          <Text style={styles.body}>
-            Storage, rules, notifications, and preferences now sit behind services, so a future redesign can replace the
-            screens without rewriting MOM's local brain.
-          </Text>
+          <Text style={styles.cardTitle}>{t(language, 'settings.phaseTitle')}</Text>
+          <Text style={styles.body}>{t(language, 'settings.phaseBody')}</Text>
         </PaperCard>
       </ScrollView>
     </View>

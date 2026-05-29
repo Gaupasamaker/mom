@@ -3,7 +3,8 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
 import { colors, fonts, spacing } from '../theme';
-import type { CalendarEvent } from '../types';
+import { localeFor, t } from '../i18n';
+import type { AppLanguage, CalendarEvent } from '../types';
 import { PaperCard } from './PaperCard';
 import { TapeLabel } from './TapeLabel';
 
@@ -11,28 +12,29 @@ type Props = {
   events: CalendarEvent[];
   title?: string;
   maxItems?: number;
+  language: AppLanguage;
 };
 
-const formatTime = (date: string) =>
-  new Intl.DateTimeFormat('en', { hour: 'numeric', minute: '2-digit' }).format(new Date(date));
+const formatTime = (date: string, language: AppLanguage) =>
+  new Intl.DateTimeFormat(localeFor(language), { hour: 'numeric', minute: '2-digit' }).format(new Date(date));
 
-export function ScheduleCard({ events, title = "Today's Top Notes", maxItems }: Props) {
+export function ScheduleCard({ events, title, maxItems, language }: Props) {
   const visibleEvents = typeof maxItems === 'number' ? events.slice(0, maxItems) : events;
   const hiddenCount = Math.max(events.length - visibleEvents.length, 0);
 
   return (
     <View style={styles.wrap}>
-      <TapeLabel label={title} color="#88A7BD" />
+      <TapeLabel label={title ?? t(language, 'schedule.title')} color="#88A7BD" />
       <PaperCard backgroundColor="#FFFDF6" style={styles.card}>
         {visibleEvents.map((event) => (
           <View key={event.id} style={styles.row}>
-            <Text style={styles.time}>{formatTime(event.startsAt)}</Text>
+            <Text style={styles.time}>{formatTime(event.startsAt, language)}</Text>
             <Text style={styles.title}>{event.title}</Text>
             <Feather name={iconFor(event.category)} size={16} color={colors.sageDark} />
           </View>
         ))}
-        {hiddenCount > 0 ? <Text style={styles.more}>+ {hiddenCount} more later today</Text> : null}
-        <Text style={styles.footer}>You've got this.</Text>
+        {hiddenCount > 0 ? <Text style={styles.more}>{t(language, 'schedule.more', { count: hiddenCount })}</Text> : null}
+        <Text style={styles.footer}>{t(language, 'schedule.footer')}</Text>
       </PaperCard>
     </View>
   );

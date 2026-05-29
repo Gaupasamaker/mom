@@ -35,15 +35,16 @@ export const MomRulesEngine = {
     const { today, userProfile } = input;
     const insights: MomInsight[] = [];
     const personality = userProfile.personality;
+    const language = input.preferences?.language ?? 'en';
 
     if (input.weatherForecast?.rainExpectedLaterToday) {
       insights.push(
         withMomPriority(
           MomTemplateService.buildInsight(personality, 'weather', 'high', {
-            title: 'Umbrella check',
-            detail: 'Rain is expected later today. Take your umbrella before leaving.',
+            title: language === 'es' ? 'Revisa el paraguas' : 'Umbrella check',
+            detail: language === 'es' ? 'Se espera lluvia más tarde. Coge el paraguas antes de salir.' : 'Rain is expected later today. Take your umbrella before leaving.',
             sourceId: `${input.weatherForecast.cityName}-rain`,
-          }),
+          }, language),
           'important',
         ),
       );
@@ -52,10 +53,10 @@ export const MomRulesEngine = {
       insights.push(
         withMomPriority(
           MomTemplateService.buildInsight(personality, 'weather', 'medium', {
-            title: 'Windy day',
-            detail: "It may be windy today. Be careful if you're biking or carrying an umbrella.",
+            title: language === 'es' ? 'Día con viento' : 'Windy day',
+            detail: language === 'es' ? 'Puede hacer viento hoy. Ten cuidado si vas en bici o llevas paraguas.' : "It may be windy today. Be careful if you're biking or carrying an umbrella.",
             sourceId: `${input.weatherForecast.cityName}-wind`,
-          }),
+          }, language),
           'important',
         ),
       );
@@ -64,10 +65,10 @@ export const MomRulesEngine = {
       insights.push(
         withMomPriority(
           MomTemplateService.buildInsight(personality, 'weather', 'medium', {
-            title: 'Warm day ahead',
-            detail: "It may get hot today. Take water if you're going out.",
+            title: language === 'es' ? 'Día caluroso' : 'Warm day ahead',
+            detail: language === 'es' ? 'Puede hacer calor hoy. Lleva agua si vas a salir.' : "It may get hot today. Take water if you're going out.",
             sourceId: `${input.weatherForecast.cityName}-heat`,
-          }),
+          }, language),
           'important',
         ),
       );
@@ -76,10 +77,10 @@ export const MomRulesEngine = {
       insights.push(
         withMomPriority(
           MomTemplateService.buildInsight(personality, 'weather', 'low', {
-            title: 'Chilly weather',
-            detail: 'It may be cold today. Take a jacket, just in case.',
+            title: language === 'es' ? 'Tiempo fresquito' : 'Chilly weather',
+            detail: language === 'es' ? 'Puede hacer frío hoy. Llévate una chaqueta, por si acaso.' : 'It may be cold today. Take a jacket, just in case.',
             sourceId: `${input.weatherForecast.cityName}-cold`,
-          }),
+          }, language),
           'later',
         ),
       );
@@ -96,10 +97,10 @@ export const MomRulesEngine = {
       insights.push(
         withMomPriority(
           MomTemplateService.buildInsight(personality, 'busy-day', 'high', {
-            title: 'Event coming up',
-            detail: `${soonEvent.title} starts soon`,
+            title: language === 'es' ? 'Evento a la vista' : 'Event coming up',
+            detail: language === 'es' ? `${soonEvent.title} empieza pronto` : `${soonEvent.title} starts soon`,
             sourceId: soonEvent.id,
-          }),
+          }, language),
           'urgent',
         ),
       );
@@ -117,10 +118,12 @@ export const MomRulesEngine = {
       insights.push(
         withMomPriority(
           MomTemplateService.buildInsight(personality, 'routine', 'high', {
-            title: `Overdue: ${overdueReminder.title}`,
-            detail: `${overdueReminder.title} is overdue. Handle it today so it stops following you around.`,
+            title: language === 'es' ? `Vencido: ${overdueReminder.title}` : `Overdue: ${overdueReminder.title}`,
+            detail: language === 'es'
+              ? `${overdueReminder.title} está vencido. Hazlo hoy para que deje de perseguirte.`
+              : `${overdueReminder.title} is overdue. Handle it today so it stops following you around.`,
             sourceId: overdueReminder.id,
-          }),
+          }, language),
           'urgent',
         ),
       );
@@ -133,10 +136,10 @@ export const MomRulesEngine = {
       insights.push(
         withMomPriority(
           MomTemplateService.buildInsight(personality, 'medical-prep', 'high', {
-            title: 'Doctor appointment tomorrow',
-            detail: `${tomorrowMedical.title} is tomorrow.`,
+            title: language === 'es' ? 'Cita médica mañana' : 'Doctor appointment tomorrow',
+            detail: language === 'es' ? `${tomorrowMedical.title} es mañana.` : `${tomorrowMedical.title} is tomorrow.`,
             sourceId: tomorrowMedical.id,
-          }),
+          }, language),
           'urgent',
         ),
       );
@@ -152,9 +155,11 @@ export const MomRulesEngine = {
         withMomPriority(
           MomTemplateService.buildInsight(personality, 'busy-day', 'medium', {
             title: tomorrowMorningEvent.title,
-            detail: `${tomorrowMorningEvent.title} is tomorrow morning. Set out anything you need tonight`,
+            detail: language === 'es'
+              ? `${tomorrowMorningEvent.title} es mañana por la mañana. Deja preparado esta noche lo que necesites.`
+              : `${tomorrowMorningEvent.title} is tomorrow morning. Set out anything you need tonight`,
             sourceId: tomorrowMorningEvent.id,
-          }),
+          }, language),
           'important',
         ),
       );
@@ -170,11 +175,11 @@ export const MomRulesEngine = {
       insights.push(
         withMomPriority(
           MomTemplateService.buildInsight(personality, 'birthday', birthdayPriority === 'urgent' ? 'high' : 'medium', {
-            title: `${nextBirthday.birthday.name}'s birthday`,
-            detail: `${nextBirthday.birthday.name}'s birthday`,
+            title: language === 'es' ? `Cumpleaños de ${nextBirthday.birthday.name}` : `${nextBirthday.birthday.name}'s birthday`,
+            detail: language === 'es' ? `Cumpleaños de ${nextBirthday.birthday.name}` : `${nextBirthday.birthday.name}'s birthday`,
             daysUntil: nextBirthday.daysUntil,
             sourceId: nextBirthday.birthday.id,
-          }),
+          }, language),
           birthdayPriority,
         ),
       );
@@ -189,9 +194,9 @@ export const MomRulesEngine = {
         withMomPriority(
           MomTemplateService.buildInsight(personality, 'routine', 'high', {
             title: highPriorityDueToday.title,
-            detail: `${highPriorityDueToday.title} is due today`,
+            detail: language === 'es' ? `${highPriorityDueToday.title} vence hoy` : `${highPriorityDueToday.title} is due today`,
             sourceId: highPriorityDueToday.id,
-          }),
+          }, language),
           'urgent',
         ),
       );
@@ -202,10 +207,10 @@ export const MomRulesEngine = {
       insights.push(
         withMomPriority(
           MomTemplateService.buildInsight(personality, 'shopping', 'medium', {
-            title: 'Grocery essentials',
+            title: language === 'es' ? 'Esenciales de compra' : 'Grocery essentials',
             names: essentialUnchecked.map((item) => item.label).join(', '),
             sourceId: input.shoppingList.id,
-          }),
+          }, language),
           'important',
         ),
       );
@@ -217,9 +222,9 @@ export const MomRulesEngine = {
         withMomPriority(
           MomTemplateService.buildInsight(personality, 'shopping', 'low', {
             title: nonEssentialUnchecked.label,
-            detail: `${nonEssentialUnchecked.label} is still on the list`,
+            detail: language === 'es' ? `${nonEssentialUnchecked.label} sigue en la lista` : `${nonEssentialUnchecked.label} is still on the list`,
             sourceId: nonEssentialUnchecked.id,
-          }),
+          }, language),
           'later',
         ),
       );
@@ -234,9 +239,9 @@ export const MomRulesEngine = {
         withMomPriority(
           MomTemplateService.buildInsight(personality, 'routine', 'medium', {
             title: reminderDueTomorrow.title,
-            detail: `${reminderDueTomorrow.title} is due tomorrow`,
+            detail: language === 'es' ? `${reminderDueTomorrow.title} vence mañana` : `${reminderDueTomorrow.title} is due tomorrow`,
             sourceId: reminderDueTomorrow.id,
-          }),
+          }, language),
           'important',
         ),
       );
@@ -247,9 +252,9 @@ export const MomRulesEngine = {
       insights.push(
         withMomPriority(
           MomTemplateService.buildInsight(personality, 'busy-day', 'medium', {
-            title: 'Busy day pacing',
-            detail: `You have ${todayEvents.length} things on the calendar today`,
-          }),
+            title: language === 'es' ? 'Ritmo para un día lleno' : 'Busy day pacing',
+            detail: language === 'es' ? `Tienes ${todayEvents.length} cosas en el calendario hoy` : `You have ${todayEvents.length} things on the calendar today`,
+          }, language),
           'important',
         ),
       );
@@ -260,10 +265,12 @@ export const MomRulesEngine = {
       insights.push(
         withMomPriority(
           MomTemplateService.buildInsight(personality, 'routine', 'low', {
-            title: incompleteEssentials.length === 1 ? incompleteEssentials[0].title : 'Daily essentials',
-            detail: `${incompleteEssentials.length} little home note${incompleteEssentials.length === 1 ? ' is' : 's are'} still open`,
+            title: incompleteEssentials.length === 1 ? incompleteEssentials[0].title : language === 'es' ? 'Esenciales diarios' : 'Daily essentials',
+            detail: language === 'es'
+              ? `${incompleteEssentials.length} pequeña nota de casa sigue${incompleteEssentials.length === 1 ? '' : 'n'} pendiente${incompleteEssentials.length === 1 ? '' : 's'}`
+              : `${incompleteEssentials.length} little home note${incompleteEssentials.length === 1 ? ' is' : 's are'} still open`,
             sourceId: incompleteEssentials[0]?.id,
-          }),
+          }, language),
           'later',
         ),
       );
@@ -278,7 +285,7 @@ export const MomRulesEngine = {
               title: prepTask.title,
               detail: prepTask.message,
               sourceId: prepTask.sourceId ?? prepTask.id,
-            }),
+            }, language),
             momPriority,
           ),
         );
@@ -289,7 +296,9 @@ export const MomRulesEngine = {
 
     return {
       generatedAt: `${today}T08:00:00`,
-      summary: `${insights.length} little things MOM noticed for you today.`,
+      summary: language === 'es'
+        ? `${insights.length} cositas que MOM ha notado por ti hoy.`
+        : `${insights.length} little things MOM noticed for you today.`,
       insights,
       groups,
       suggestions: insights.map((insight) => ({

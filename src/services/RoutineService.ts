@@ -26,8 +26,10 @@ export const RoutineService = {
     return {
       id: `${type}-${input.today}`,
       type,
-      title: type === 'morning' ? 'Morning routine' : 'Evening routine',
-      message: MomTemplateService.buildRoutineMessage(input.userProfile.personality, type, isEmpty),
+      title: input.preferences?.language === 'es'
+        ? type === 'morning' ? 'Rutina de mañana' : 'Rutina de tarde'
+        : type === 'morning' ? 'Morning routine' : 'Evening routine',
+      message: MomTemplateService.buildRoutineMessage(input.userProfile.personality, type, isEmpty, input.preferences?.language ?? 'en'),
       tasks,
       generatedAt: `${input.today}T08:00:00`,
     };

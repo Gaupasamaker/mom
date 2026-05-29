@@ -1,9 +1,23 @@
-import type { WeatherCondition } from '../types';
+import { t } from '../i18n';
+import type { AppLanguage, WeatherCondition } from '../types';
 
 type WeatherCodeInfo = {
   label: string;
   icon: string;
   condition: WeatherCondition;
+};
+
+const labelKeyForCondition: Record<WeatherCondition, Parameters<typeof t>[1]> = {
+  clear: 'weather.clear',
+  'partly-cloudy': 'weather.partlyCloudy',
+  cloudy: 'weather.cloudy',
+  fog: 'weather.fog',
+  drizzle: 'weather.drizzle',
+  rain: 'weather.rainLabel',
+  thunderstorm: 'weather.thunderstorm',
+  snow: 'weather.snow',
+  windy: 'weather.cloudy',
+  unknown: 'weather.unavailableLabel',
 };
 
 const info = (label: string, icon: string, condition: WeatherCondition): WeatherCodeInfo => ({
@@ -46,12 +60,12 @@ const codeMap = new Map<number, WeatherCodeInfo>([
 const fallback = info('Weather unavailable', 'weather-cloudy-alert', 'unknown');
 
 export const WeatherCodeService = {
-  fromCode(code?: number | null): WeatherCodeInfo {
-    if (typeof code !== 'number') {
-      return fallback;
-    }
-
-    return codeMap.get(code) ?? fallback;
+  fromCode(code?: number | null, language: AppLanguage = 'en'): WeatherCodeInfo {
+    const base = typeof code === 'number' ? codeMap.get(code) ?? fallback : fallback;
+    return {
+      ...base,
+      label: t(language, labelKeyForCondition[base.condition]),
+    };
   },
 
   isRainCode(code?: number | null) {

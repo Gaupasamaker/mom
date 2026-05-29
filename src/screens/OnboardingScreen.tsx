@@ -5,30 +5,25 @@ import { Feather, Ionicons } from '@expo/vector-icons';
 import { MomCTAButton } from '../components/MomCTAButton';
 import { PaperCard } from '../components/PaperCard';
 import { PaperTexture } from '../components/PaperTexture';
+import { personalityOptions, t } from '../i18n';
 import { colors, fonts, spacing } from '../theme';
-import type { MomPersonality, ReminderInterest } from '../types';
+import type { AppLanguage, MomPersonality, ReminderInterest } from '../types';
 
 type Props = {
   onComplete: (personality: MomPersonality, interests: ReminderInterest[]) => void;
+  language: AppLanguage;
 };
 
-const personalities: Array<{ value: MomPersonality; label: string; note: string }> = [
-  { value: 'sweet', label: 'Sweet Mom', note: "Soft nudges and you're-loved energy." },
-  { value: 'funny', label: 'Funny Mom', note: 'Caring reminders with a tiny wink.' },
-  { value: 'strict', label: 'Strict Mom', note: 'Clear, firm, no procrastinating.' },
-  { value: 'minimal', label: 'Minimal Mom', note: 'Just the useful part.' },
+const interestItems: Array<{ value: ReminderInterest; key: Parameters<typeof t>[1]; icon: keyof typeof Feather.glyphMap }> = [
+  { value: 'weather', key: 'interest.weather', icon: 'cloud-rain' },
+  { value: 'birthdays', key: 'interest.birthdays', icon: 'gift' },
+  { value: 'calendar', key: 'interest.calendar', icon: 'calendar' },
+  { value: 'shopping', key: 'interest.shopping', icon: 'shopping-bag' },
+  { value: 'family', key: 'interest.family', icon: 'users' },
+  { value: 'routines', key: 'interest.routines', icon: 'repeat' },
 ];
 
-const interests: Array<{ value: ReminderInterest; label: string; icon: keyof typeof Feather.glyphMap }> = [
-  { value: 'weather', label: 'Weather', icon: 'cloud-rain' },
-  { value: 'birthdays', label: 'Birthdays', icon: 'gift' },
-  { value: 'calendar', label: 'Appointments', icon: 'calendar' },
-  { value: 'shopping', label: 'Shopping', icon: 'shopping-bag' },
-  { value: 'family', label: 'Family', icon: 'users' },
-  { value: 'routines', label: 'Routines', icon: 'repeat' },
-];
-
-export function OnboardingScreen({ onComplete }: Props) {
+export function OnboardingScreen({ onComplete, language }: Props) {
   const [personality, setPersonality] = useState<MomPersonality>('sweet');
   const [selected, setSelected] = useState<ReminderInterest[]>([
     'weather',
@@ -37,6 +32,7 @@ export function OnboardingScreen({ onComplete }: Props) {
     'shopping',
     'family',
   ]);
+  const personalities = personalityOptions(language);
 
   const toggleInterest = (interest: ReminderInterest) => {
     setSelected((current) =>
@@ -55,11 +51,11 @@ export function OnboardingScreen({ onComplete }: Props) {
         </View>
 
         <PaperCard pinned tapeColor={colors.beige} style={styles.welcomeCard}>
-          <Text style={styles.script}>I will help you remember the things that matter.</Text>
-          <Text style={styles.body}>I've got you. Because someone has to remind you.</Text>
+          <Text style={styles.script}>{t(language, 'onboarding.welcomeScript')}</Text>
+          <Text style={styles.body}>{t(language, 'onboarding.welcomeBody')}</Text>
         </PaperCard>
 
-        <Text style={styles.sectionTitle}>Choose MOM's tone</Text>
+        <Text style={styles.sectionTitle}>{t(language, 'onboarding.toneTitle')}</Text>
         <View style={styles.optionGrid}>
           {personalities.map((item) => (
             <Pressable
@@ -74,9 +70,9 @@ export function OnboardingScreen({ onComplete }: Props) {
           ))}
         </View>
 
-        <Text style={styles.sectionTitle}>What should MOM watch?</Text>
+        <Text style={styles.sectionTitle}>{t(language, 'onboarding.watchTitle')}</Text>
         <View style={styles.chipGrid}>
-          {interests.map((interest) => {
+          {interestItems.map((interest) => {
             const isSelected = selected.includes(interest.value);
             return (
               <Pressable
@@ -87,13 +83,13 @@ export function OnboardingScreen({ onComplete }: Props) {
                 style={[styles.chip, isSelected && styles.selectedChip]}
               >
                 <Feather name={interest.icon} size={18} color={isSelected ? colors.white : colors.coralDark} />
-                <Text style={[styles.chipText, isSelected && styles.selectedChipText]}>{interest.label}</Text>
+                <Text style={[styles.chipText, isSelected && styles.selectedChipText]}>{t(language, interest.key)}</Text>
               </Pressable>
             );
           })}
         </View>
 
-        <MomCTAButton label="Start my MOM board" onPress={() => onComplete(personality, selected)} />
+        <MomCTAButton label={t(language, 'onboarding.start')} onPress={() => onComplete(personality, selected)} />
       </ScrollView>
     </View>
   );

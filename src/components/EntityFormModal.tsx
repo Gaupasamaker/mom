@@ -4,6 +4,8 @@ import { Feather } from '@expo/vector-icons';
 
 import { colors, fonts, spacing } from '../theme';
 import { PaperTexture } from './PaperTexture';
+import { localeFor, t } from '../i18n';
+import type { AppLanguage } from '../types';
 
 export type FormField = {
   key: string;
@@ -27,6 +29,7 @@ type Props = {
   fields: FormField[];
   initialValues?: Record<string, string>;
   submitLabel?: string;
+  language: AppLanguage;
   onClose: () => void;
   onSubmit: (values: Record<string, string>) => void | Promise<void>;
 };
@@ -36,7 +39,8 @@ export function EntityFormModal({
   title,
   fields,
   initialValues,
-  submitLabel = 'Save',
+  submitLabel,
+  language,
   onClose,
   onSubmit,
 }: Props) {
@@ -55,7 +59,7 @@ export function EntityFormModal({
   const submit = async () => {
     const missing = fields.find((field) => field.required && !values[field.key]?.trim());
     if (missing) {
-      setError(`${missing.label} is required.`);
+      setError(t(language, 'common.required', { field: missing.label }));
       return;
     }
 
@@ -71,7 +75,7 @@ export function EntityFormModal({
       await onSubmit(values);
       onClose();
     } catch {
-      setError('I could not save that. Check the details and try again.');
+      setError(t(language, 'common.saveError'));
     }
   };
 
@@ -82,7 +86,7 @@ export function EntityFormModal({
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
             <Text style={styles.title}>{title}</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel="Close form" onPress={onClose} style={styles.close}>
+            <Pressable accessibilityRole="button" accessibilityLabel={t(language, 'common.closeForm')} onPress={onClose} style={styles.close}>
               <Feather name="x" size={21} color={colors.coralDark} />
             </Pressable>
           </View>
@@ -100,14 +104,14 @@ export function EntityFormModal({
                   <Text style={[styles.dateButtonText, !values[field.key] && styles.placeholderText]}>
                     {values[field.key]
                       ? field.type === 'date'
-                        ? formatDateLabel(values[field.key])
-                        : formatDateTimeLabel(values[field.key])
-                      : field.placeholder ?? 'Choose date'}
+                        ? formatDateLabel(values[field.key], language)
+                        : formatDateTimeLabel(values[field.key], language)
+                      : field.placeholder ?? t(language, 'common.chooseDate')}
                   </Text>
                 </Pressable>
               ) : field.type === 'select' || field.type === 'boolean' ? (
                 <View style={styles.optionWrap}>
-                  {optionsFor(field).map((option) => {
+                  {optionsFor(field, language).map((option) => {
                     const active = (values[field.key] ?? '') === option.value;
                     return (
                       <Pressable
@@ -137,7 +141,7 @@ export function EntityFormModal({
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
           <Pressable accessibilityRole="button" onPress={submit} style={styles.submit}>
-            <Text style={styles.submitText}>{submitLabel}</Text>
+            <Text style={styles.submitText}>{submitLabel ?? t(language, 'common.save')}</Text>
           </Pressable>
         </ScrollView>
 
@@ -151,6 +155,7 @@ export function EntityFormModal({
             setValues((current) => ({ ...current, [picker.field.key]: nextValue }));
             setPicker(null);
           }}
+          language={language}
         />
       </View>
     </Modal>
@@ -162,16 +167,18 @@ function DateTimePickerSheet({
   onClose,
   onChangeDraft,
   onSave,
+  language,
 }: {
   picker: PickerState | null;
   onClose: () => void;
   onChangeDraft: (date: Date) => void;
   onSave: () => void;
+  language: AppLanguage;
 }) {
   const calendarCells = useMemo(() => (picker ? buildCalendarCells(picker.draft) : []), [picker]);
   if (!picker) return null;
 
-  const monthLabel = new Intl.DateTimeFormat('en', { month: 'long', year: 'numeric' }).format(picker.draft);
+  const monthLabel = new Intl.DateTimeFormat(localeFor(language), { month: 'long', year: 'numeric' }).format(picker.draft);
   const showTime = picker.field.type === 'datetime-local';
 
   return (
@@ -196,7 +203,7 @@ function DateTimePickerSheet({
           </View>
 
           <View style={styles.weekRow}>
-            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
+            {(language === 'es' ? ['D', 'L', 'M', 'X', 'J', 'V', 'S'] : ['S', 'M', 'T', 'W', 'T', 'F', 'S']).map((day, index) => (
               <Text key={`${day}-${index}`} style={styles.weekDay}>
                 {day}
               </Text>
@@ -221,7 +228,7 @@ function DateTimePickerSheet({
 
           {showTime ? (
             <View style={styles.timePicker}>
-              <Text style={styles.label}>Time</Text>
+              <Text style={styles.label}>{t(language, 'common.time')}</Text>
               <View style={styles.timeRow}>
                 <StepperButton label="- hour" onPress={() => onChangeDraft(addHours(picker.draft, -1))} />
                 <Text style={styles.timeValue}>{formatTimeValue(picker.draft)}</Text>
@@ -229,14 +236,14 @@ function DateTimePickerSheet({
               </View>
               <View style={styles.timeRow}>
                 <StepperButton label="-15 min" onPress={() => onChangeDraft(addMinutes(picker.draft, -15))} />
-                <Text style={styles.timeHint}>Adjust minutes</Text>
+                <Text style={styles.timeHint}>{t(language, 'common.adjustMinutes')}</Text>
                 <StepperButton label="+15 min" onPress={() => onChangeDraft(addMinutes(picker.draft, 15))} />
               </View>
             </View>
           ) : null}
 
           <Pressable accessibilityRole="button" onPress={onSave} style={styles.submit}>
-            <Text style={styles.submitText}>Use this date</Text>
+            <Text style={styles.submitText}>{t(language, 'common.useThisDate')}</Text>
           </Pressable>
         </View>
       </View>
@@ -252,11 +259,11 @@ function StepperButton({ label, onPress }: { label: string; onPress: () => void 
   );
 }
 
-function optionsFor(field: FormField): Array<{ label: string; value: string }> {
+function optionsFor(field: FormField, language: AppLanguage): Array<{ label: string; value: string }> {
   if (field.type === 'boolean') {
     return [
-      { label: 'Yes', value: 'yes' },
-      { label: 'No', value: 'no' },
+      { label: t(language, 'common.yes'), value: 'yes' },
+      { label: t(language, 'common.no'), value: 'no' },
     ];
   }
 
@@ -287,16 +294,16 @@ function formatDateTimeValue(date: Date) {
   return `${formatDateValue(date)}T${pad(date.getHours())}:${pad(date.getMinutes())}:00`;
 }
 
-function formatDateLabel(value: string) {
+function formatDateLabel(value: string, language: AppLanguage) {
   const parsed = new Date(`${value.slice(0, 10)}T00:00:00`);
   if (Number.isNaN(parsed.getTime())) return value;
-  return new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short', year: 'numeric' }).format(parsed);
+  return new Intl.DateTimeFormat(localeFor(language), { day: 'numeric', month: 'short', year: 'numeric' }).format(parsed);
 }
 
-function formatDateTimeLabel(value: string) {
+function formatDateTimeLabel(value: string, language: AppLanguage) {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return value;
-  return new Intl.DateTimeFormat('en', {
+  return new Intl.DateTimeFormat(localeFor(language), {
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',

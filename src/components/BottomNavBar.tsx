@@ -4,6 +4,8 @@ import { Feather, Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
 import { colors, fonts, shadows, spacing } from '../theme';
+import { t } from '../i18n';
+import type { AppLanguage } from '../types';
 
 export type TabKey = 'home' | 'calendar' | 'lists' | 'family';
 
@@ -11,6 +13,7 @@ type Props = {
   activeTab: TabKey;
   onTabPress: (tab: TabKey) => void;
   onMomCheckPress: () => void;
+  language: AppLanguage;
 };
 
 const tabs: Array<{ key: TabKey; label: string; icon: keyof typeof Feather.glyphMap }> = [
@@ -20,7 +23,7 @@ const tabs: Array<{ key: TabKey; label: string; icon: keyof typeof Feather.glyph
   { key: 'family', label: 'Family', icon: 'users' },
 ];
 
-export function BottomNavBar({ activeTab, onTabPress, onMomCheckPress }: Props) {
+export function BottomNavBar({ activeTab, onTabPress, onMomCheckPress, language }: Props) {
   const openMomCheck = () => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     onMomCheckPress();
@@ -29,13 +32,13 @@ export function BottomNavBar({ activeTab, onTabPress, onMomCheckPress }: Props) 
   return (
     <View style={[styles.nav, shadows.paper]}>
       {tabs.slice(0, 2).map((tab) => (
-        <NavItem key={tab.key} tab={tab} active={activeTab === tab.key} onPress={() => onTabPress(tab.key)} />
+        <NavItem key={tab.key} tab={tab} active={activeTab === tab.key} onPress={() => onTabPress(tab.key)} language={language} />
       ))}
-      <Pressable accessibilityRole="button" accessibilityLabel="MOM Check" onPress={openMomCheck} style={styles.heartButton}>
+      <Pressable accessibilityRole="button" accessibilityLabel={t(language, 'nav.momCheck')} onPress={openMomCheck} style={styles.heartButton}>
         <Ionicons name="heart" size={34} color={colors.warmCream} />
       </Pressable>
       {tabs.slice(2).map((tab) => (
-        <NavItem key={tab.key} tab={tab} active={activeTab === tab.key} onPress={() => onTabPress(tab.key)} />
+        <NavItem key={tab.key} tab={tab} active={activeTab === tab.key} onPress={() => onTabPress(tab.key)} language={language} />
       ))}
     </View>
   );
@@ -45,15 +48,18 @@ function NavItem({
   tab,
   active,
   onPress,
+  language,
 }: {
   tab: { key: TabKey; label: string; icon: keyof typeof Feather.glyphMap };
   active: boolean;
   onPress: () => void;
+  language: AppLanguage;
 }) {
+  const labelKey = `nav.${tab.key}` as Parameters<typeof t>[1];
   return (
     <Pressable accessibilityRole="tab" accessibilityState={{ selected: active }} onPress={onPress} style={styles.item}>
       <Feather name={tab.icon} size={24} color={active ? colors.coral : colors.mutedInk} />
-      <Text style={[styles.itemLabel, active && styles.activeLabel]}>{tab.label}</Text>
+      <Text style={[styles.itemLabel, active && styles.activeLabel]}>{t(language, labelKey)}</Text>
     </Pressable>
   );
 }

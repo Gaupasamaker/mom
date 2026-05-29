@@ -16,6 +16,7 @@ import {
 } from '../repositories/MomRepositories';
 import { NotificationScheduler } from '../services/NotificationScheduler';
 import { WeatherService } from '../services/WeatherService';
+import { t } from '../i18n';
 import type {
   Birthday,
   CalendarEvent,
@@ -92,7 +93,6 @@ export function useMomData() {
       WeatherRepository.list(),
       WeatherForecastRepository.get(),
     ]);
-
     setData({
       preferences,
       reminders,
@@ -141,7 +141,8 @@ export function useMomData() {
   const updatePreferences = useCallback(
     async (patch: Partial<UserPreferences>) => {
       if (!data) return;
-      await persist({ ...data, preferences: { ...data.preferences, ...patch } }, 'Settings saved.');
+      const nextPreferences = { ...data.preferences, ...patch };
+      await persist({ ...data, preferences: nextPreferences }, t(nextPreferences.language, 'common.settingsSaved'));
     },
     [data, persist],
   );
@@ -156,9 +157,9 @@ export function useMomData() {
       if (!data) return;
       try {
         const parsed = JSON.parse(json) as unknown;
-        await persist(normalizeImportedData(parsed, data.preferences), 'Local data imported.');
+        await persist(normalizeImportedData(parsed, data.preferences), data.preferences.language === 'es' ? 'Datos locales importados.' : 'Local data imported.');
       } catch {
-        setFeedback('That JSON did not import. Check the format and try again.');
+        setFeedback(data.preferences.language === 'es' ? 'Ese JSON no se pudo importar. Revisa el formato e inténtalo otra vez.' : 'That JSON did not import. Check the format and try again.');
       }
     },
     [data, persist],
@@ -178,7 +179,7 @@ export function useMomData() {
         weatherAlerts: data.weatherAlerts,
         weatherForecast: null,
       },
-      'Local data reset.',
+      data.preferences.language === 'es' ? 'Datos locales borrados.' : 'Local data reset.',
     );
   }, [data, persist]);
 
@@ -191,11 +192,12 @@ export function useMomData() {
         preferences: {
           ...demoData.preferences,
           personality: data.preferences.personality,
+          language: data.preferences.language,
           hasCompletedOnboarding: true,
         },
         weatherForecast: null,
       },
-      'Demo data restored.',
+      data.preferences.language === 'es' ? 'Datos demo restaurados.' : 'Demo data restored.',
     );
   }, [data, persist]);
 
@@ -204,22 +206,22 @@ export function useMomData() {
     const trimmed = query.trim();
     if (trimmed.length < 2) {
       setWeatherSearchResults([]);
-      setWeatherSearchMessage('Type at least two letters so MOM knows where to look.');
+      setWeatherSearchMessage(data?.preferences.language === 'es' ? 'Escribe al menos dos letras para que MOM sepa dónde mirar.' : 'Type at least two letters so MOM knows where to look.');
       return;
     }
 
     setWeatherLoading(true);
     try {
-      const results = await WeatherService.searchCities(trimmed);
+      const results = await WeatherService.searchCities(trimmed, undefined, data?.preferences.language ?? 'en');
       setWeatherSearchResults(results);
-      setWeatherSearchMessage(results.length ? null : 'No matching cities found. Try a nearby city or a simpler name.');
+      setWeatherSearchMessage(results.length ? null : data?.preferences.language === 'es' ? 'No encontré ciudades. Prueba una ciudad cercana o un nombre más simple.' : 'No matching cities found. Try a nearby city or a simpler name.');
     } catch {
       setWeatherSearchResults([]);
-      setWeatherSearchMessage('I could not search cities right now. Try again in a bit.');
+      setWeatherSearchMessage(data?.preferences.language === 'es' ? 'No pude buscar ciudades ahora mismo. Prueba de nuevo en un rato.' : 'I could not search cities right now. Try again in a bit.');
     } finally {
       setWeatherLoading(false);
     }
-  }, []);
+  }, [data?.preferences.language]);
 
   const applyForecast = useCallback(
     async (forecast: WeatherForecast, message?: string) => {
@@ -234,7 +236,7 @@ export function useMomData() {
       if (!data) return;
       const city = data.preferences.selectedCity;
       if (!city) {
-        setFeedback('Choose a city first and MOM will check the sky.');
+        setFeedback(data.preferences.language === 'es' ? 'Elige primero una ciudad y MOM mirará el cielo.' : 'Choose a city first and MOM will check the sky.');
         return;
       }
 
@@ -248,14 +250,14 @@ export function useMomData() {
           }
         }
 
-        const forecast = await WeatherService.fetchForecast(city);
-        await applyForecast(forecast, 'Weather updated.');
+        const forecast = await WeatherService.fetchForecast(city, undefined, data.preferences.language);
+        await applyForecast(forecast, data.preferences.language === 'es' ? 'Clima actualizado.' : 'Weather updated.');
       } catch {
         const cached = await WeatherForecastRepository.get();
         if (cached) {
-          await applyForecast({ ...cached, stale: true }, 'Using the last saved weather. MOM could not refresh it right now.');
+          await applyForecast({ ...cached, stale: true }, data.preferences.language === 'es' ? 'Usando el último clima guardado. MOM no pudo actualizarlo ahora.' : 'Using the last saved weather. MOM could not refresh it right now.');
         } else {
-          await applyForecast(WeatherService.normalizeForecast(city, null), 'Weather is unavailable right now.');
+          await applyForecast(WeatherService.normalizeForecast(city, null, new Date().toISOString(), data.preferences.language), data.preferences.language === 'es' ? 'El clima no está disponible ahora mismo.' : 'Weather is unavailable right now.');
         }
       } finally {
         setWeatherLoading(false);
@@ -277,16 +279,18 @@ export function useMomData() {
           selectedCity: city,
         },
       };
-      await persist(nextData, 'City saved.');
+      await persist(nextData, data.preferences.language === 'es' ? 'Ciudad guardada.' : 'City saved.');
       setWeatherLoading(true);
       try {
-        const forecast = await WeatherService.fetchForecast(city);
-        await persist({ ...nextData, weatherForecast: forecast }, 'City and weather saved.');
+        const forecast = await WeatherService.fetchForecast(city, undefined, data.preferences.language);
+        await persist({ ...nextData, weatherForecast: forecast }, data.preferences.language === 'es' ? 'Ciudad y clima guardados.' : 'City and weather saved.');
       } catch {
         const cached = await WeatherForecastRepository.get();
         await persist(
-          { ...nextData, weatherForecast: cached ? { ...cached, stale: true } : WeatherService.normalizeForecast(city, null) },
-          cached ? 'City saved. Using the last saved weather for now.' : 'City saved. Weather is unavailable right now.',
+          { ...nextData, weatherForecast: cached ? { ...cached, stale: true } : WeatherService.normalizeForecast(city, null, new Date().toISOString(), data.preferences.language) },
+          cached
+            ? data.preferences.language === 'es' ? 'Ciudad guardada. Usando el último clima guardado por ahora.' : 'City saved. Using the last saved weather for now.'
+            : data.preferences.language === 'es' ? 'Ciudad guardada. El clima no está disponible ahora.' : 'City saved. Weather is unavailable right now.',
         );
       } finally {
         setWeatherLoading(false);
@@ -315,7 +319,7 @@ export function useMomData() {
             ? data.reminders.map((item) => (item.id === reminder.id ? reminder : item))
             : [...data.reminders, reminder],
         },
-        'Reminder saved.',
+        data.preferences.language === 'es' ? 'Recordatorio guardado.' : 'Reminder saved.',
       );
     },
     [data, persist],
@@ -324,7 +328,7 @@ export function useMomData() {
   const deleteReminder = useCallback(
     async (id: string) => {
       if (!data) return;
-      await persist({ ...data, reminders: data.reminders.filter((item) => item.id !== id) }, 'Reminder deleted.');
+      await persist({ ...data, reminders: data.reminders.filter((item) => item.id !== id) }, data.preferences.language === 'es' ? 'Recordatorio eliminado.' : 'Reminder deleted.');
     },
     [data, persist],
   );
@@ -351,7 +355,7 @@ export function useMomData() {
             ? data.calendarEvents.map((item) => (item.id === event.id ? event : item))
             : [...data.calendarEvents, event],
         },
-        'Calendar event saved.',
+        data.preferences.language === 'es' ? 'Evento guardado.' : 'Calendar event saved.',
       );
     },
     [data, persist],
@@ -360,7 +364,7 @@ export function useMomData() {
   const deleteCalendarEvent = useCallback(
     async (id: string) => {
       if (!data) return;
-      await persist({ ...data, calendarEvents: data.calendarEvents.filter((item) => item.id !== id) }, 'Event deleted.');
+      await persist({ ...data, calendarEvents: data.calendarEvents.filter((item) => item.id !== id) }, data.preferences.language === 'es' ? 'Evento eliminado.' : 'Event deleted.');
     },
     [data, persist],
   );
@@ -376,7 +380,7 @@ export function useMomData() {
             ? data.birthdays.map((item) => (item.id === birthday.id ? birthday : item))
             : [...data.birthdays, birthday],
         },
-        'Birthday saved.',
+        data.preferences.language === 'es' ? 'Cumpleaños guardado.' : 'Birthday saved.',
       );
     },
     [data, persist],
@@ -385,7 +389,7 @@ export function useMomData() {
   const deleteBirthday = useCallback(
     async (id: string) => {
       if (!data) return;
-      await persist({ ...data, birthdays: data.birthdays.filter((item) => item.id !== id) }, 'Birthday deleted.');
+      await persist({ ...data, birthdays: data.birthdays.filter((item) => item.id !== id) }, data.preferences.language === 'es' ? 'Cumpleaños eliminado.' : 'Birthday deleted.');
     },
     [data, persist],
   );
@@ -401,7 +405,7 @@ export function useMomData() {
             ? data.familyMembers.map((item) => (item.id === member.id ? member : item))
             : [...data.familyMembers, member],
         },
-        'Family member saved.',
+        data.preferences.language === 'es' ? 'Persona guardada.' : 'Family member saved.',
       );
     },
     [data, persist],
@@ -410,7 +414,7 @@ export function useMomData() {
   const deleteFamilyMember = useCallback(
     async (id: string) => {
       if (!data) return;
-      await persist({ ...data, familyMembers: data.familyMembers.filter((item) => item.id !== id) }, 'Family member deleted.');
+      await persist({ ...data, familyMembers: data.familyMembers.filter((item) => item.id !== id) }, data.preferences.language === 'es' ? 'Persona eliminada.' : 'Family member deleted.');
     },
     [data, persist],
   );
@@ -426,7 +430,7 @@ export function useMomData() {
             ? data.littleReminders.map((item) => (item.id === reminder.id ? reminder : item))
             : [...data.littleReminders, reminder],
         },
-        'Little reminder saved.',
+        data.preferences.language === 'es' ? 'Nota guardada.' : 'Little reminder saved.',
       );
     },
     [data, persist],
@@ -435,7 +439,7 @@ export function useMomData() {
   const deleteLittleReminder = useCallback(
     async (id: string) => {
       if (!data) return;
-      await persist({ ...data, littleReminders: data.littleReminders.filter((item) => item.id !== id) }, 'Little reminder deleted.');
+      await persist({ ...data, littleReminders: data.littleReminders.filter((item) => item.id !== id) }, data.preferences.language === 'es' ? 'Nota eliminada.' : 'Little reminder deleted.');
     },
     [data, persist],
   );
@@ -462,7 +466,7 @@ export function useMomData() {
             ? data.shoppingLists.map((item) => (item.id === list.id ? list : item))
             : [...data.shoppingLists, list],
         },
-        'Shopping list saved.',
+        data.preferences.language === 'es' ? 'Lista guardada.' : 'Shopping list saved.',
       );
     },
     [data, persist],
@@ -471,7 +475,7 @@ export function useMomData() {
   const deleteShoppingList = useCallback(
     async (id: string) => {
       if (!data) return;
-      await persist({ ...data, shoppingLists: data.shoppingLists.filter((item) => item.id !== id) }, 'Shopping list deleted.');
+      await persist({ ...data, shoppingLists: data.shoppingLists.filter((item) => item.id !== id) }, data.preferences.language === 'es' ? 'Lista eliminada.' : 'Shopping list deleted.');
     },
     [data, persist],
   );
@@ -494,7 +498,7 @@ export function useMomData() {
               : list,
           ),
         },
-        'Shopping item saved.',
+        data.preferences.language === 'es' ? 'Artículo guardado.' : 'Shopping item saved.',
       );
     },
     [data, persist],
@@ -508,7 +512,7 @@ export function useMomData() {
         shoppingLists: data.shoppingLists.map((list) =>
           list.id === listId ? { ...list, items: list.items.filter((item) => item.id !== itemId) } : list,
         ),
-      }, 'Shopping item deleted.');
+      }, data.preferences.language === 'es' ? 'Artículo eliminado.' : 'Shopping item deleted.');
     },
     [data, persist],
   );

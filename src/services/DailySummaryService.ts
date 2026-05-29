@@ -17,6 +17,7 @@ const isEssentialShoppingItem = (item: { essential?: boolean; isEssential?: bool
 export const DailySummaryService = {
   create(input: MomCheckInput): DailySummary {
     const today = input.today;
+    const language = input.preferences?.language ?? 'en';
     const eventsToday = input.calendarEvents.filter((event) => sameDay(event.startsAt, today));
     const eventsTomorrow = input.calendarEvents.filter((event) => daysBetween(today, event.startsAt) === 1);
     const activeReminders = input.reminders?.filter((reminder) => !reminder.completed) ?? [];
@@ -39,51 +40,53 @@ export const DailySummaryService = {
         type: 'reminder' as const,
         priority: 'urgent' as const,
         title: reminder.title,
-        message: 'This reminder is overdue.',
+        message: language === 'es' ? 'Este recordatorio está vencido.' : 'This reminder is overdue.',
         sourceId: reminder.id,
       })),
       ...dueReminders.map((reminder) => ({
         type: 'reminder' as const,
         priority: reminder.priority === 'high' ? ('urgent' as const) : ('important' as const),
         title: reminder.title,
-        message: 'This is due today.',
+        message: language === 'es' ? 'Vence hoy.' : 'This is due today.',
         sourceId: reminder.id,
       })),
       ...healthEvents.map((event) => ({
         type: 'health' as const,
         priority: 'important' as const,
         title: event.title,
-        message: sameDay(event.startsAt, today) ? 'Health-related event today.' : 'Health-related event tomorrow.',
+        message: sameDay(event.startsAt, today)
+          ? language === 'es' ? 'Evento de salud hoy.' : 'Health-related event today.'
+          : language === 'es' ? 'Evento de salud mañana.' : 'Health-related event tomorrow.',
         sourceId: event.id,
       })),
       ...upcomingBirthdays.map((birthday) => ({
         type: 'birthday' as const,
         priority: daysBetween(today, birthday.date) <= 1 ? ('urgent' as const) : ('important' as const),
-        title: `${birthday.name}'s birthday`,
+        title: language === 'es' ? `Cumpleaños de ${birthday.name}` : `${birthday.name}'s birthday`,
         message: birthday.favoriteCakeOrTreat
-          ? `Remember ${birthday.favoriteCakeOrTreat}.`
-          : 'You still have time to plan something kind.',
+          ? language === 'es' ? `Recuerda ${birthday.favoriteCakeOrTreat}.` : `Remember ${birthday.favoriteCakeOrTreat}.`
+          : language === 'es' ? 'Aún tienes tiempo de preparar algo bonito.' : 'You still have time to plan something kind.',
         sourceId: birthday.id,
       })),
       ...incompleteEssentialShopping.map((item) => ({
         type: 'shopping' as const,
         priority: 'important' as const,
         title: item.label,
-        message: 'Essential shopping item still unchecked.',
+        message: language === 'es' ? 'Artículo esencial de compra aún pendiente.' : 'Essential shopping item still unchecked.',
         sourceId: item.id,
       })),
       ...familyEvents.map((event) => ({
         type: 'family' as const,
         priority: 'normal' as const,
         title: event.title,
-        message: 'Family plan on the board today.',
+        message: language === 'es' ? 'Plan familiar en el tablero de hoy.' : 'Family plan on the board today.',
         sourceId: event.id,
       })),
       ...incompleteLittleReminders.slice(0, 2).map((reminder) => ({
         type: 'suggestion' as const,
         priority: 'later' as const,
         title: reminder.title,
-        message: 'A small home note is still open.',
+        message: language === 'es' ? 'Una pequeña nota de casa sigue pendiente.' : 'A small home note is still open.',
         sourceId: reminder.id,
       })),
     ];
@@ -92,8 +95,8 @@ export const DailySummaryService = {
       highlights.push({
         type: 'suggestion',
         priority: 'important',
-        title: 'Busy day pacing',
-        message: 'Leave a little buffer between plans.',
+        title: language === 'es' ? 'Ritmo para un día lleno' : 'Busy day pacing',
+        message: language === 'es' ? 'Deja un poco de margen entre planes.' : 'Leave a little buffer between plans.',
       });
     }
 
@@ -110,7 +113,7 @@ export const DailySummaryService = {
 
     return {
       ...summaryWithoutMessage,
-      topMessage: MomTemplateService.buildDailySummaryMessage(input.userProfile.personality, summaryWithoutMessage),
+      topMessage: MomTemplateService.buildDailySummaryMessage(input.userProfile.personality, summaryWithoutMessage, language),
     };
   },
 };

@@ -4,13 +4,15 @@ import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { PaperCard } from '../components/PaperCard';
 import { PaperTexture } from '../components/PaperTexture';
+import { t } from '../i18n';
 import { colors, fonts, spacing } from '../theme';
-import type { MomCheckPriority, MomCheckResult, MomInsight } from '../types';
+import type { AppLanguage, MomCheckPriority, MomCheckResult, MomInsight } from '../types';
 
 type Props = {
   visible: boolean;
   result: MomCheckResult;
   onClose: () => void;
+  language: AppLanguage;
 };
 
 const iconFor = (insight: MomInsight) => {
@@ -21,13 +23,13 @@ const iconFor = (insight: MomInsight) => {
   return 'calendar-heart';
 };
 
-const prioritySections: Array<{ key: MomCheckPriority; label: string; caption: string }> = [
-  { key: 'urgent', label: 'Urgent', caption: 'Do these first.' },
-  { key: 'important', label: 'Important', caption: 'Worth handling today.' },
-  { key: 'later', label: 'For later', caption: 'Small things MOM noticed.' },
+const prioritySections: Array<{ key: MomCheckPriority; labelKey: Parameters<typeof t>[1]; captionKey: Parameters<typeof t>[1] }> = [
+  { key: 'urgent', labelKey: 'momCheck.urgent', captionKey: 'momCheck.urgentCaption' },
+  { key: 'important', labelKey: 'momCheck.important', captionKey: 'momCheck.importantCaption' },
+  { key: 'later', labelKey: 'momCheck.later', captionKey: 'momCheck.laterCaption' },
 ];
 
-export function MomCheckModal({ visible, result, onClose }: Props) {
+export function MomCheckModal({ visible, result, onClose, language }: Props) {
   const grouped = result.groups ?? {
     urgent: result.insights.filter((insight) => insight.priority === 'high'),
     important: result.insights.filter((insight) => insight.priority === 'medium'),
@@ -42,10 +44,10 @@ export function MomCheckModal({ visible, result, onClose }: Props) {
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
             <View>
-              <Text style={styles.title}>MOM Check</Text>
-              <Text style={styles.subtitle}>Things you might be forgetting.</Text>
+              <Text style={styles.title}>{t(language, 'momCheck.title')}</Text>
+              <Text style={styles.subtitle}>{t(language, 'momCheck.subtitle')}</Text>
             </View>
-            <Pressable accessibilityRole="button" accessibilityLabel="Close MOM Check" onPress={onClose} style={styles.close}>
+            <Pressable accessibilityRole="button" accessibilityLabel={t(language, 'momCheck.close')} onPress={onClose} style={styles.close}>
               <Feather name="x" size={22} color={colors.coralDark} />
             </Pressable>
           </View>
@@ -56,8 +58,8 @@ export function MomCheckModal({ visible, result, onClose }: Props) {
 
           {result.insights.length === 0 ? (
             <PaperCard backgroundColor={colors.paper} style={styles.insight}>
-              <Text style={styles.emptyTitle}>Nothing urgent today</Text>
-              <Text style={styles.message}>No big flags on the board. Enjoy the rare quiet.</Text>
+              <Text style={styles.emptyTitle}>{t(language, 'momCheck.emptyTitle')}</Text>
+              <Text style={styles.message}>{t(language, 'momCheck.emptyMessage')}</Text>
             </PaperCard>
           ) : null}
 
@@ -68,8 +70,8 @@ export function MomCheckModal({ visible, result, onClose }: Props) {
             return (
               <View key={section.key} style={styles.section}>
                 <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>{section.label}</Text>
-                  <Text style={styles.sectionCaption}>{section.caption}</Text>
+                  <Text style={styles.sectionTitle}>{t(language, section.labelKey)}</Text>
+                  <Text style={styles.sectionCaption}>{t(language, section.captionKey)}</Text>
                 </View>
                 {insights.map((insight) => {
                   cardIndex += 1;
@@ -102,7 +104,7 @@ export function MomCheckModal({ visible, result, onClose }: Props) {
           })}
 
           <Pressable accessibilityRole="button" onPress={onClose} style={styles.doneButton}>
-            <Text style={styles.doneText}>Thanks, MOM</Text>
+            <Text style={styles.doneText}>{t(language, 'momCheck.done')}</Text>
           </Pressable>
         </ScrollView>
       </View>

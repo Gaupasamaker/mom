@@ -13,6 +13,7 @@ const input: MomCheckInput = {
   },
   preferences: {
     hasCompletedOnboarding: true,
+    language: 'en',
     personality: 'sweet',
     notificationsEnabled: true,
     dailySummaryTime: '08:00',

@@ -6,8 +6,9 @@ import { EmptyState } from '../components/EmptyState';
 import { EntityFormModal } from '../components/EntityFormModal';
 import { PaperCard } from '../components/PaperCard';
 import { PaperTexture } from '../components/PaperTexture';
+import { t } from '../i18n';
 import { colors, fonts, spacing } from '../theme';
-import type { Birthday, FamilyMember, MomPersonality } from '../types';
+import type { AppLanguage, Birthday, FamilyMember, MomPersonality } from '../types';
 import { confirmDestructive } from '../utils/confirm';
 
 type Props = {
@@ -18,6 +19,7 @@ type Props = {
   onDeleteBirthday: (id: string) => void;
   onSaveFamilyMember: (member: Omit<FamilyMember, 'id'> & { id?: string }) => void;
   onDeleteFamilyMember: (id: string) => void;
+  language: AppLanguage;
 };
 
 type FormState = { type: 'family'; member?: FamilyMember } | { type: 'birthday'; birthday?: Birthday } | null;
@@ -30,6 +32,7 @@ export function FamilyScreen({
   onDeleteBirthday,
   onSaveFamilyMember,
   onDeleteFamilyMember,
+  language,
 }: Props) {
   const [form, setForm] = useState<FormState>(null);
 
@@ -39,8 +42,8 @@ export function FamilyScreen({
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.headingRow}>
           <View style={styles.headingCopy}>
-            <Text style={styles.title}>Family Board</Text>
-            <Text style={styles.subtitle}>The people MOM keeps close.</Text>
+            <Text style={styles.title}>{t(language, 'family.title')}</Text>
+            <Text style={styles.subtitle}>{t(language, 'family.subtitle')}</Text>
           </View>
           <Pressable accessibilityRole="button" onPress={() => setForm({ type: 'family' })} style={styles.addButton}>
             <Feather name="plus" size={22} color={colors.white} />
@@ -48,7 +51,7 @@ export function FamilyScreen({
         </View>
 
         {familyMembers.length === 0 ? (
-          <EmptyState kind="family" tone={personality} />
+          <EmptyState kind="family" tone={personality} language={language} />
         ) : null}
 
         {familyMembers.map((member, index) => (
@@ -71,7 +74,7 @@ export function FamilyScreen({
               </Pressable>
               <Pressable
                 onPress={() =>
-                  confirmDestructive('Delete family member?', `Remove "${member.name}" from the board?`, () =>
+                  confirmDestructive(t(language, 'family.deleteMemberTitle'), t(language, 'family.deleteMemberBody', { title: member.name }), () =>
                     onDeleteFamilyMember(member.id),
                   )
                 }
@@ -92,12 +95,12 @@ export function FamilyScreen({
         ))}
 
         <View style={styles.birthdayHeader}>
-          <Text style={styles.sectionTitle}>Birthdays</Text>
+          <Text style={styles.sectionTitle}>{t(language, 'family.birthdays')}</Text>
           <Pressable accessibilityRole="button" onPress={() => setForm({ type: 'birthday' })}>
             <Feather name="plus-circle" size={24} color={colors.coral} />
           </Pressable>
         </View>
-        {birthdays.length === 0 ? <EmptyState kind="birthdays" tone={personality} /> : null}
+        {birthdays.length === 0 ? <EmptyState kind="birthdays" tone={personality} language={language} /> : null}
         {birthdays.map((birthday) => (
           <PaperCard key={birthday.id} backgroundColor="#FFF1CD" style={styles.card}>
             <View style={styles.row}>
@@ -106,12 +109,12 @@ export function FamilyScreen({
                 <Text style={styles.relationship}>{birthday.relationship}</Text>
                 <Text style={styles.note}>{birthday.date}</Text>
                 {birthday.note ? <Text style={styles.note}>{birthday.note}</Text> : null}
-                {birthday.giftIdea ? <Text style={styles.note}>Gift idea: {birthday.giftIdea}</Text> : null}
-                {birthday.favoriteCakeOrTreat ? <Text style={styles.note}>Treat: {birthday.favoriteCakeOrTreat}</Text> : null}
+                {birthday.giftIdea ? <Text style={styles.note}>{t(language, 'family.giftIdea', { value: birthday.giftIdea })}</Text> : null}
+                {birthday.favoriteCakeOrTreat ? <Text style={styles.note}>{t(language, 'family.treat', { value: birthday.favoriteCakeOrTreat })}</Text> : null}
               </Pressable>
               <Pressable
                 onPress={() =>
-                  confirmDestructive('Delete birthday?', `Remove "${birthday.name}" from birthday reminders?`, () =>
+                  confirmDestructive(t(language, 'family.deleteBirthdayTitle'), t(language, 'family.deleteBirthdayBody', { title: birthday.name }), () =>
                     onDeleteBirthday(birthday.id),
                   )
                 }
@@ -125,24 +128,25 @@ export function FamilyScreen({
 
       <EntityFormModal
         visible={form !== null}
-        title={form?.type === 'birthday' ? (form.birthday ? 'Edit Birthday' : 'Add Birthday') : form?.member ? 'Edit Person' : 'Add Person'}
+        title={form?.type === 'birthday' ? (form.birthday ? t(language, 'family.editBirthday') : t(language, 'family.addBirthday')) : form?.member ? t(language, 'family.editPerson') : t(language, 'family.addPerson')}
+        language={language}
         fields={
           form?.type === 'birthday'
             ? [
-                { key: 'name', label: 'Name', required: true, placeholder: 'Noah' },
-                { key: 'date', label: 'Date', required: true, type: 'date', placeholder: 'Choose date' },
-                { key: 'relationship', label: 'Relationship', placeholder: 'nephew' },
-                { key: 'giftIdea', label: 'Gift idea', placeholder: 'Art kit' },
-                { key: 'favoriteCakeOrTreat', label: 'Favorite treat', placeholder: 'Chocolate cake' },
-                { key: 'note', label: 'Note', multiline: true, placeholder: 'Favorite cake, gift idea, etc.' },
+                { key: 'name', label: t(language, 'family.name'), required: true, placeholder: t(language, 'family.noah') },
+                { key: 'date', label: t(language, 'family.date'), required: true, type: 'date', placeholder: t(language, 'common.chooseDate') },
+                { key: 'relationship', label: t(language, 'family.relationship'), placeholder: t(language, 'family.nephew') },
+                { key: 'giftIdea', label: t(language, 'family.giftIdeaField'), placeholder: t(language, 'family.artKit') },
+                { key: 'favoriteCakeOrTreat', label: t(language, 'family.favoriteTreat'), placeholder: t(language, 'family.chocolateCake') },
+                { key: 'note', label: t(language, 'lists.note'), multiline: true, placeholder: t(language, 'family.birthdayNotePlaceholder') },
               ]
             : [
-                { key: 'name', label: 'Name', required: true, placeholder: 'Emma' },
-                { key: 'relationship', label: 'Relationship', required: true, placeholder: 'Friend' },
-                { key: 'birthday', label: 'Birthday', type: 'date', placeholder: 'Choose date' },
-                { key: 'favoriteThings', label: 'Favorite things', placeholder: 'Coffee, flowers' },
-                { key: 'careNote', label: 'Care note', multiline: true, placeholder: 'Lunch today at 12:30.' },
-                { key: 'notes', label: 'Notes', multiline: true, placeholder: 'Anything MOM should remember later.' },
+                { key: 'name', label: t(language, 'family.name'), required: true, placeholder: t(language, 'family.emma') },
+                { key: 'relationship', label: t(language, 'family.relationship'), required: true, placeholder: t(language, 'family.friend') },
+                { key: 'birthday', label: t(language, 'family.birthdays'), type: 'date', placeholder: t(language, 'common.chooseDate') },
+                { key: 'favoriteThings', label: t(language, 'family.favoriteThings'), placeholder: t(language, 'family.favoriteThingsPlaceholder') },
+                { key: 'careNote', label: t(language, 'family.careNote'), multiline: true, placeholder: t(language, 'family.careNotePlaceholder') },
+                { key: 'notes', label: t(language, 'family.notes'), multiline: true, placeholder: t(language, 'family.notesPlaceholder') },
               ]
         }
         initialValues={

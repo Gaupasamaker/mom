@@ -221,6 +221,7 @@ describe('MomRulesEngine', () => {
       today: '2026-05-14',
       preferences: {
         hasCompletedOnboarding: true,
+        language: 'en',
         personality: 'sweet',
         notificationsEnabled: true,
         dailySummaryTime: '08:00',

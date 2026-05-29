@@ -8,9 +8,11 @@ import {
   weatherAlerts,
 } from './mockData';
 import type { LittleReminder, MomAppData, UserPreferences } from '../types';
+import { getDeviceLanguage } from '../i18n';
 
 export const defaultPreferences: UserPreferences = {
   hasCompletedOnboarding: false,
+  language: getDeviceLanguage(),
   personality: userProfile.personality,
   notificationsEnabled: true,
   dailySummaryTime: '08:00',

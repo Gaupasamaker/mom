@@ -1,4 +1,4 @@
-import type { WeatherCity, WeatherForecast } from '../types';
+import type { AppLanguage, WeatherCity, WeatherForecast } from '../types';
 import { WeatherCodeService } from './WeatherCodeService';
 
 const GEOCODING_URL = 'https://geocoding-api.open-meteo.com/v1/search';
@@ -55,14 +55,14 @@ const cityFromResult = (result: Record<string, unknown>): WeatherCity | null => 
   };
 };
 
-const weatherUnavailable = (city: WeatherCity, updatedAt: string): WeatherForecast => ({
+const weatherUnavailable = (city: WeatherCity, updatedAt: string, language: AppLanguage = 'en'): WeatherForecast => ({
   cityName: city.name,
   country: city.country,
   admin1: city.admin1,
   latitude: city.latitude,
   longitude: city.longitude,
   timezone: city.timezone,
-  currentConditionLabel: 'Weather unavailable',
+  currentConditionLabel: WeatherCodeService.fromCode(undefined, language).label,
   currentConditionIcon: 'weather-cloudy-alert',
   rainExpectedToday: false,
   rainExpectedLaterToday: false,
@@ -74,7 +74,7 @@ const weatherUnavailable = (city: WeatherCity, updatedAt: string): WeatherForeca
 });
 
 export const WeatherService = {
-  async searchCities(query: string, fetcher?: Fetcher): Promise<WeatherCity[]> {
+  async searchCities(query: string, fetcher?: Fetcher, language: AppLanguage = 'en'): Promise<WeatherCity[]> {
     const trimmed = query.trim();
     if (trimmed.length < 2) {
       return [];
@@ -83,7 +83,7 @@ export const WeatherService = {
     const params = new URLSearchParams({
       name: trimmed,
       count: '8',
-      language: 'en',
+      language,
       format: 'json',
     });
     const payload = await withTimeout(`${GEOCODING_URL}?${params.toString()}`, fetcher);
@@ -98,7 +98,7 @@ export const WeatherService = {
       .filter((city): city is WeatherCity => Boolean(city));
   },
 
-  async fetchForecast(city: WeatherCity, fetcher?: Fetcher): Promise<WeatherForecast> {
+  async fetchForecast(city: WeatherCity, fetcher?: Fetcher, language: AppLanguage = 'en'): Promise<WeatherForecast> {
     const params = new URLSearchParams({
       latitude: String(city.latitude),
       longitude: String(city.longitude),
@@ -110,12 +110,12 @@ export const WeatherService = {
     });
     const payload = await withTimeout(`${FORECAST_URL}?${params.toString()}`, fetcher);
 
-    return this.normalizeForecast(city, payload);
+    return this.normalizeForecast(city, payload, new Date().toISOString(), language);
   },
 
-  normalizeForecast(city: WeatherCity, payload: unknown, updatedAt = new Date().toISOString()): WeatherForecast {
+  normalizeForecast(city: WeatherCity, payload: unknown, updatedAt = new Date().toISOString(), language: AppLanguage = 'en'): WeatherForecast {
     if (!isRecord(payload)) {
-      return weatherUnavailable(city, updatedAt);
+      return weatherUnavailable(city, updatedAt, language);
     }
 
     const current = isRecord(payload.current) ? payload.current : {};
@@ -124,7 +124,7 @@ export const WeatherService = {
 
     const currentTemperature = toNumber(current.temperature_2m);
     const currentConditionCode = toNumber(current.weather_code);
-    const currentCondition = WeatherCodeService.fromCode(currentConditionCode);
+    const currentCondition = WeatherCodeService.fromCode(currentConditionCode, language);
     const dailyMaxTemperature = firstNumber(daily.temperature_2m_max);
     const dailyMinTemperature = firstNumber(daily.temperature_2m_min);
 
@@ -149,7 +149,7 @@ export const WeatherService = {
     const hasUsableCurrent = currentTemperature !== undefined || currentConditionCode !== undefined;
 
     if (!hasUsableCurrent && dailyMaxTemperature === undefined && dailyMinTemperature === undefined && times.length === 0) {
-      return weatherUnavailable(city, updatedAt);
+      return weatherUnavailable(city, updatedAt, language);
     }
 
     return {

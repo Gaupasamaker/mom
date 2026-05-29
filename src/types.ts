@@ -1,4 +1,5 @@
 export type MomPersonality = 'sweet' | 'funny' | 'strict' | 'minimal';
+export type AppLanguage = 'en' | 'es';
 
 export type ReminderInterest =
   | 'weather'
@@ -23,6 +24,7 @@ export type UserProfile = {
 
 export type UserPreferences = {
   hasCompletedOnboarding: boolean;
+  language: AppLanguage;
   personality: MomPersonality;
   notificationsEnabled: boolean;
   dailySummaryTime: string;
