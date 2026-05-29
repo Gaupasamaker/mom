@@ -1,0 +1,42 @@
+{
+  "name": "mom-mobile-mvp",
+  "version": "1.0.0",
+  "description": "A cozy proactive reminder assistant MVP built with Expo, React Native, and TypeScript.",
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "web:local": "expo start --web --port 8083",
+    "typecheck": "tsc --noEmit",
+    "export:android": "expo export --platform android --output-dir dist-android-check",
+    "export:ios": "expo export --platform ios --output-dir dist-ios-check",
+    "export:web": "expo export --platform web --output-dir dist-web-check",
+    "test": "vitest run"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@expo/metro-runtime": "~55.0.11",
+    "@expo/vector-icons": "^15.1.1",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@types/react": "^19.2.14",
+    "expo": "^55.0.24",
+    "expo-haptics": "^55.0.14",
+    "expo-linear-gradient": "^55.0.14",
+    "expo-notifications": "~55.0.23",
+    "expo-status-bar": "^55.0.6",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-native": "0.83.6",
+    "react-native-web": "^0.21.0",
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "babel-preset-expo": "^55.0.21",
+    "vitest": "^4.1.6"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "MOM",
+    "slug": "mom-mobile-mvp",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#F8EEDB"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.mom.mobilemvp"
+    },
+    "android": {
+      "package": "com.mom.mobilemvp"
+    }
+  }
+}
