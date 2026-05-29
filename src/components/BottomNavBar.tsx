@@ -7,7 +7,7 @@ import { colors, fonts, shadows, spacing } from '../theme';
 import { t } from '../i18n';
 import type { AppLanguage } from '../types';
 
-export type TabKey = 'home' | 'calendar' | 'lists' | 'family';
+export type TabKey = 'home' | 'calendar' | 'lists' | 'family' | 'settings';
 
 type Props = {
   activeTab: TabKey;
@@ -21,6 +21,7 @@ const tabs: Array<{ key: TabKey; label: string; icon: keyof typeof Feather.glyph
   { key: 'calendar', label: 'Calendar', icon: 'calendar' },
   { key: 'lists', label: 'Lists', icon: 'clipboard' },
   { key: 'family', label: 'Family', icon: 'users' },
+  { key: 'settings', label: 'Settings', icon: 'settings' },
 ];
 
 export function BottomNavBar({ activeTab, onTabPress, onMomCheckPress, language }: Props) {
@@ -58,8 +59,10 @@ function NavItem({
   const labelKey = `nav.${tab.key}` as Parameters<typeof t>[1];
   return (
     <Pressable accessibilityRole="tab" accessibilityState={{ selected: active }} onPress={onPress} style={styles.item}>
-      <Feather name={tab.icon} size={24} color={active ? colors.coral : colors.mutedInk} />
-      <Text style={[styles.itemLabel, active && styles.activeLabel]}>{t(language, labelKey)}</Text>
+      <Feather name={tab.icon} size={23} color={active ? colors.coral : colors.mutedInk} />
+      <Text style={[styles.itemLabel, active && styles.activeLabel]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
+        {t(language, labelKey)}
+      </Text>
     </Pressable>
   );
 }
@@ -74,23 +77,25 @@ const styles = StyleSheet.create({
     backgroundColor: colors.sage,
     borderColor: colors.warmCream,
     borderRadius: 36,
-    borderWidth: 7,
-    bottom: 18,
-    height: 70,
+    borderWidth: 6,
+    bottom: 16,
+    height: 64,
     justifyContent: 'center',
-    width: 70,
+    width: 64,
   },
   item: {
     alignItems: 'center',
     flex: 1,
     gap: spacing.xs,
     justifyContent: 'center',
+    minWidth: 0,
   },
   itemLabel: {
     color: colors.mutedInk,
     fontFamily: fonts.body,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
+    textAlign: 'center',
   },
   nav: {
     alignItems: 'center',

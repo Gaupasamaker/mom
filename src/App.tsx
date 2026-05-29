@@ -21,7 +21,6 @@ import { replaceTimeGreeting, t } from './i18n';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabKey>('home');
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [momCheckOpen, setMomCheckOpen] = useState(false);
   const momData = useMomData();
   const language = momData.data?.preferences.language ?? 'en';
@@ -83,10 +82,10 @@ export default function App() {
       <StatusBar style="dark" />
       <View style={styles.appFrame}>
         <View style={styles.content}>
-          {settingsOpen ? (
+          {activeTab === 'settings' ? (
             <SettingsScreen
               preferences={momData.data.preferences}
-              onBack={() => setSettingsOpen(false)}
+              onBack={() => setActiveTab('home')}
               onPreferencesChange={(patch) => void momData.updatePreferences(patch)}
               onExportData={momData.exportData}
               onImportData={(json) => void momData.importDataFromJson(json)}
@@ -117,7 +116,6 @@ export default function App() {
                   weatherForecast={momData.data.weatherForecast}
                   onMomCheckPress={() => setMomCheckOpen(true)}
                   onRefreshWeather={() => void momData.refreshWeather(true)}
-                  onSettingsPress={() => setSettingsOpen(true)}
                   onToggleShoppingItem={(listId, itemId) => void momData.toggleShoppingItem(listId, itemId)}
                 />
               ) : null}
@@ -168,9 +166,7 @@ export default function App() {
             <FeedbackBanner message={momData.saving ? t(language, 'common.saving') : momData.feedback} onDismiss={momData.clearFeedback} />
           </View>
         </View>
-        {!settingsOpen ? (
-          <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} onMomCheckPress={() => setMomCheckOpen(true)} language={language} />
-        ) : null}
+        <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} onMomCheckPress={() => setMomCheckOpen(true)} language={language} />
       </View>
       {momCheckResult ? <MomCheckModal visible={momCheckOpen} result={momCheckResult} onClose={() => setMomCheckOpen(false)} language={language} /> : null}
     </SafeAreaView>

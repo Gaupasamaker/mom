@@ -1,6 +1,6 @@
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Feather, Ionicons } from '@expo/vector-icons';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import { BirthdayCard } from '../components/BirthdayCard';
 import { ChecklistCard } from '../components/ChecklistCard';
@@ -38,7 +38,6 @@ type Props = {
   weatherForecast?: WeatherForecast | null;
   onMomCheckPress: () => void;
   onRefreshWeather: () => void;
-  onSettingsPress: () => void;
   onToggleShoppingItem: (listId: string, itemId: string) => void;
   language: AppLanguage;
 };
@@ -58,7 +57,6 @@ export function HomeScreen({
   weatherForecast,
   onMomCheckPress,
   onRefreshWeather,
-  onSettingsPress,
   onToggleShoppingItem,
   language,
 }: Props) {
@@ -80,15 +78,11 @@ export function HomeScreen({
       <PaperTexture />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.topBar}>
-          <View style={styles.topBarSpacer} />
           <View style={styles.brandRow}>
             <Ionicons name="leaf-outline" size={26} color={colors.sageDark} />
             <Text style={styles.logo}>MOM</Text>
             <Ionicons name="leaf-outline" size={26} color={colors.sageDark} />
           </View>
-          <Pressable accessibilityRole="button" accessibilityLabel="Settings" onPress={onSettingsPress}>
-            <Feather name="settings" size={28} color={colors.coralDark} />
-          </Pressable>
         </View>
 
         <GreetingCard language={language} />
@@ -190,7 +184,7 @@ const styles = StyleSheet.create({
   content: {
     padding: spacing.lg,
     paddingBottom: 34,
-    paddingTop: 54,
+    paddingTop: 28,
   },
   logo: {
     color: colors.coral,
@@ -206,11 +200,8 @@ const styles = StyleSheet.create({
   topBar: {
     alignItems: 'center',
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     marginBottom: spacing.md,
-  },
-  topBarSpacer: {
-    width: 28,
   },
   sectionLabel: {
     color: colors.coralDark,
