@@ -80,7 +80,7 @@ export function HomeScreen({
       <PaperTexture />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.topBar}>
-          <Feather name="menu" size={32} color={colors.coralDark} />
+          <View style={styles.topBarSpacer} />
           <View style={styles.brandRow}>
             <Ionicons name="leaf-outline" size={26} color={colors.sageDark} />
             <Text style={styles.logo}>MOM</Text>
@@ -208,6 +208,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: spacing.md,
+  },
+  topBarSpacer: {
+    width: 28,
   },
   sectionLabel: {
     color: colors.coralDark,
