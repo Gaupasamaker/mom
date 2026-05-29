@@ -52,8 +52,10 @@ export function CalendarScreen({ events, language, personality, onSaveEvent, onD
       <PaperTexture />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.headingRow}>
-          <View>
-            <Text style={styles.title}>{t(language, 'calendar.title')}</Text>
+          <View style={styles.headingCopy}>
+            <Text style={styles.title} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78}>
+              {t(language, 'calendar.title')}
+            </Text>
             <Text style={styles.subtitle}>{t(language, 'calendar.subtitle')}</Text>
           </View>
           <Pressable accessibilityRole="button" accessibilityLabel={t(language, 'calendar.addEvent')} onPress={openCreate} style={styles.addButton}>
@@ -169,8 +171,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.coral,
     borderRadius: 18,
+    flexShrink: 0,
     height: 36,
     justifyContent: 'center',
+    marginLeft: spacing.sm,
+    marginTop: spacing.sm,
     width: 36,
   },
   date: {
@@ -192,8 +197,11 @@ const styles = StyleSheet.create({
   headingRow: {
     alignItems: 'flex-start',
     flexDirection: 'row',
-    justifyContent: 'space-between',
     marginBottom: spacing.lg,
+  },
+  headingCopy: {
+    flex: 1,
+    minWidth: 0,
   },
   eventTitle: {
     color: colors.ink,
@@ -234,7 +242,8 @@ const styles = StyleSheet.create({
   title: {
     color: colors.coral,
     fontFamily: fonts.display,
-    fontSize: 38,
+    fontSize: 36,
     fontWeight: '900',
+    lineHeight: 42,
   },
 });
